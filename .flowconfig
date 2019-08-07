@@ -1,0 +1,13 @@
+[ignore]
+.*/.git/.*
+
+[include]
+.*/.*
+
+[libs]
+
+[lints]
+
+[options]
+
+[strict]

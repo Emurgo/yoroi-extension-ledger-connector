@@ -1,0 +1,43 @@
+{
+  "name": "yoroi-extension-ledger-connector",
+  "version": "1.0.0",
+  "description": "Interface for interacting through u2f for the Cardano Ledger app",
+  "author": "EMURGO.io",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "scripts": {
+    "eslint": "eslint .",
+    "flow": "flow .",
+    "build-js": "babel src/ -d lib",
+    "build-flow": "flow-copy-source src lib",
+    "build": "yarn build-js && yarn build-flow",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@cardano-foundation/ledgerjs-hw-app-cardano": "1.0.7",
+    "events": "3.0.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.2.3",
+    "@babel/core": "^7.3.3",
+    "@babel/preset-flow": "7.0.0",
+    "@babel/runtime": "7.1.5",
+    "babel-eslint": "^10.0.1",
+    "eslint": "5.8.0",
+    "eslint-plugin-flowtype": "^3.4.2",
+    "flow-bin": "^0.93.0",
+    "flow-copy-source": "^2.0.3"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Emurgo/yoroi-extension-ledger-connector.git"
+  },
+  "keywords": [
+    "cardano",
+    "ledger",
+    "yoroi"
+  ]
+}
