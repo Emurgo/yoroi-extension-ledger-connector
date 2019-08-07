@@ -19,8 +19,8 @@ const HARDENED = 0x80000000;
 const PURPOSE = 44;
 const COIN_TYPE = 1815; // Cardano
 
-const BRIDGE_URL = 'https://emurgo.github.io/yoroi-extension-ledger-bridge';
-export const YOROI_LEDGER_BRIDGE_IFRAME_NAME = 'YOROI-LEDGER-BRIDGE-IFRAME';
+const BRIDGE_URL = 'https://emurgo.github.io/yoroi-extension-ledger-connector-website';
+export const YOROI_LEDGER_BRIDGE_TARGET_NAME = 'YOROI-LEDGER-BRIDGE';
 
 type MessageType = {
   target?: string,
@@ -28,33 +28,85 @@ type MessageType = {
   params: any
 };
 
-export type ConnectionType = 'webusb' | 'u2f';
+export const ConnectionTypeValue = Object.freeze({
+  WEB_AUTHN: 'webauthn',
+  U2F: 'u2f',
+});
+export type ConnectionType = $Values<typeof ConnectionTypeValue>;
 
 export class LedgerBridge extends EventEmitter {
-  
-  isReady: boolean;
+
   bridgeUrl: string;
+  connectionType: ConnectionType;
   iframe: HTMLIFrameElement;
+  targetWindow: window;
 
   /**
    * Use `bridgeOverride` to use this library with your own website
    * 
-   * @param {*} iframe 
+   * @param {*} connectionType 'webauthn' | 'u2f'
    * @param {*} bridgeOverride 
-   * @param {*} connectionType 'webusb' | 'u2f'
    */
-  constructor (
-    iframe: ?HTMLIFrameElement = null,
-    bridgeOverride: string = BRIDGE_URL,
-    connectionType: ConnectionType = 'u2f',
+  constructor (config? : {
+      connectionType?: ConnectionType,
+      bridgeOverride?: string
+    }
   ) {
     super();
-    this.isReady = false;
-    this.bridgeUrl = bridgeOverride + '?' + connectionType;
-    this.iframe = (iframe) ? iframe : _setupIframe(this.bridgeUrl);
-    this.iframe.onload = () => {
-      this.isReady = true;
-      console.debug('[YOROI-LB-CONNECTOR]:: iframe is completely loaded');
+    this.connectionType = (config && config.connectionType) || ConnectionTypeValue.WEB_AUTHN;
+    const bridgeURL = (config && config.bridgeOverride) || BRIDGE_URL;
+    this.bridgeUrl = `${bridgeURL}?${this.connectionType}`
+    this._setupTarget();
+  }
+
+  _setupTarget(): void {
+    switch(this.connectionType) {
+      case ConnectionTypeValue.U2F:
+        const iframe = document.createElement('iframe');
+        iframe.src = this.bridgeUrl;
+        iframe.id = YOROI_LEDGER_BRIDGE_TARGET_NAME;
+        
+        if (document.head) {
+          document.head.appendChild(iframe);
+        }
+      
+        this.iframe = iframe;
+        break;
+      case ConnectionTypeValue.WEB_AUTHN:
+        this.targetWindow = window.open(this.bridgeUrl);
+        break;
+      default:
+        console.error('[YOROI-LB-CONNECTOR]:: Un-supported Transport protocol');
+        throw new Error('[YOROI-LB-CONNECTOR]:: Un-supported Transport protocol');
+    }
+  }
+
+  isBridgeReady(): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      this._sendMessage({
+        action: 'is-ready',
+        params: {
+        },
+      },
+      ({success, payload}) => {
+        if (success) {
+          console.debug('[YOROI-LB-CONNECTOR]:: Ledger Bridge is completely loaded');
+          resolve(true);
+        } else {
+          reject(new Error(_prepareError(payload)))
+        }
+      });
+    });
+  }
+
+  dispose(): void {
+    const element = document.getElementById(YOROI_LEDGER_BRIDGE_TARGET_NAME);
+    if (element instanceof HTMLIFrameElement) {
+      element.remove();
+    }
+
+    if(this.targetWindow) {
+      this.targetWindow.close();
     }
   }
 
@@ -161,16 +213,35 @@ export class LedgerBridge extends EventEmitter {
     });
   }
 
-  _sendMessage (
+  _sendMessage(
     msg: MessageType,
     cb: ({ success: boolean, payload: any}) => void
   ) {
-    msg.target = YOROI_LEDGER_BRIDGE_IFRAME_NAME;
-    this.iframe.contentWindow.postMessage(msg, '*');
+    msg.target = YOROI_LEDGER_BRIDGE_TARGET_NAME;
+
+    console.debug(`[YOROI-LB-CONNECTOR]::_sendMessage::${this.connectionType}::${msg.action}`);
+    switch(this.connectionType) {
+      case ConnectionTypeValue.U2F:
+        this.iframe.contentWindow.postMessage(msg, '*');
+        break;
+      case ConnectionTypeValue.WEB_AUTHN:
+        this.targetWindow.postMessage(msg, this.bridgeUrl);
+        break;
+      default:
+        throw new Error('[YOROI-LB-CONNECTOR]:: Un-supported Transport protocol');  
+    }
+
     window.addEventListener('message', ({ origin, data }) => {
-      if (origin !== _getOrigin(this.bridgeUrl)) return false;
+      if (origin !== _getOrigin(this.bridgeUrl)) {
+        throw new Error(`[YOROI-LB-CONNECTOR]::_sendMessage::${this.connectionType}::${msg.action}::${data.action}:: Unknown origin: ${origin}`);
+      }
+
+      console.debug(`[YOROI-LB-CONNECTOR]::_sendMessage::${this.connectionType}::${msg.action}::${data.action}`);
+
       if (data && data.action && data.action === `${msg.action}-reply`) {
         cb(data);
+      } else {
+        throw new Error(`[YOROI-LB-CONNECTOR]::_sendMessage::${this.connectionType}::${msg.action}::${data.action}:: unexpected replay`);
       }
     })
   }
@@ -180,22 +251,10 @@ export class LedgerBridge extends EventEmitter {
 //   Bridge Setup
 // ================
 
-function _getOrigin (bridgeUrl: string): string {
+function _getOrigin(bridgeUrl: string): string {
   const tmp = bridgeUrl.split('/');
   tmp.splice(-1, 1);
   return tmp.join('/');
-}
-
-function _setupIframe (bridgeUrl: string): HTMLIFrameElement {
-  const iframe = document.createElement('iframe');
-  iframe.src = bridgeUrl;
-  iframe.id = YOROI_LEDGER_BRIDGE_IFRAME_NAME
-  
-  if (document.head) {
-    document.head.appendChild(iframe);
-  }
-
-  return iframe;
 }
 
 // ====================
