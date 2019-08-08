@@ -76,7 +76,6 @@ export class LedgerBridge extends EventEmitter {
         this.targetWindow = window.open(this.bridgeUrl);
         break;
       default:
-        console.error('[YOROI-LB-CONNECTOR]:: Un-supported Transport protocol');
         throw new Error('[YOROI-LB-CONNECTOR]:: Un-supported Transport protocol');
     }
   }
@@ -233,15 +232,15 @@ export class LedgerBridge extends EventEmitter {
 
     window.addEventListener('message', ({ origin, data }) => {
       if (origin !== _getOrigin(this.bridgeUrl)) {
-        throw new Error(`[YOROI-LB-CONNECTOR]::_sendMessage::${this.connectionType}::${msg.action}::${data.action}:: Unknown origin: ${origin}`);
+        throw new Error(`[YOROI-LB-CONNECTOR]::_sendMessage::EventHandler::${this.connectionType}::${msg.action}::${data.action}:: Unknown origin: ${origin}`);
       }
-
-      console.debug(`[YOROI-LB-CONNECTOR]::_sendMessage::${this.connectionType}::${msg.action}::${data.action}`);
+      console.debug(`[YOROI-LB-CONNECTOR]::_sendMessage::EventHandler::${this.connectionType}::${msg.action}::${data.action}`);
 
       if (data && data.action && data.action === `${msg.action}-reply`) {
         cb(data);
       } else {
-        throw new Error(`[YOROI-LB-CONNECTOR]::_sendMessage::${this.connectionType}::${msg.action}::${data.action}:: unexpected replay`);
+        // TODO: https://app.clubhouse.io/emurgo/story/1829/yoroi-extension-ledger-bridge-better-event-handling
+        console.debug(`[YOROI-LB-CONNECTOR]::_sendMessage::EventHandler::${this.connectionType}::${msg.action}::${data.action}:: redundant handler`);
       }
     })
   }
