@@ -19,7 +19,7 @@ const HARDENED = 0x80000000;
 const PURPOSE = 44;
 const COIN_TYPE = 1815; // Cardano
 
-const BRIDGE_URL = 'https://emurgo.github.io/yoroi-extension-ledger-connector-website';
+const BRIDGE_URL = 'https://emurgo.github.io/yoroi-extension-ledger-connect';
 export const YOROI_LEDGER_BRIDGE_TARGET_NAME = 'YOROI-LEDGER-BRIDGE';
 
 type MessageType = {
