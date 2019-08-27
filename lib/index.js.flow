@@ -38,7 +38,6 @@ export class LedgerBridge extends EventEmitter {
 
   bridgeUrl: string;
   connectionType: ConnectionType;
-  iframe: HTMLIFrameElement;
   targetWindow: window;
 
   /**
@@ -62,18 +61,31 @@ export class LedgerBridge extends EventEmitter {
   _setupTarget(): void {
     switch(this.connectionType) {
       case ConnectionTypeValue.U2F:
-        const iframe = document.createElement('iframe');
-        iframe.src = this.bridgeUrl;
-        iframe.id = YOROI_LEDGER_BRIDGE_TARGET_NAME;
-        
-        if (document.head) {
-          document.head.appendChild(iframe);
-        }
-      
-        this.iframe = iframe;
-        break;
       case ConnectionTypeValue.WEB_AUTHN:
-        this.targetWindow = window.open(this.bridgeUrl);
+
+        var mapForm = document.createElement("form");
+        mapForm.target = "Map";
+        mapForm.method = "POST"; // or "post" if appropriate
+        mapForm.action = "https://emurgo.github.io/yoroi-extension-ledger-connect";
+    
+        var mapInput = document.createElement("input");
+        mapInput.type = "text";
+        mapInput.name = "addrs";
+        mapInput.value = 'WebAuthn';
+        mapForm.appendChild(mapInput);
+    
+        if (document.body) {
+          document.body.appendChild(mapForm);
+        }
+        
+        // this.targetWindow = window.open(this.bridgeUrl);
+        this.targetWindow = window.open("", "Map", "status=0,title=0,height=600,width=800,scrollbars=1");
+
+        if (this.targetWindow) {
+          mapForm.submit();
+        } else {
+          alert('You must allow popups for this map to work.');
+        }
         break;
       default:
         throw new Error('[YOROI-LB-CONNECTOR]:: Un-supported Transport protocol');
@@ -99,11 +111,6 @@ export class LedgerBridge extends EventEmitter {
   }
 
   dispose(): void {
-    const element = document.getElementById(YOROI_LEDGER_BRIDGE_TARGET_NAME);
-    if (element instanceof HTMLIFrameElement) {
-      element.remove();
-    }
-
     if(this.targetWindow) {
       this.targetWindow.close();
     }
@@ -221,8 +228,6 @@ export class LedgerBridge extends EventEmitter {
     console.debug(`[YOROI-LB-CONNECTOR]::_sendMessage::${this.connectionType}::${msg.action}`);
     switch(this.connectionType) {
       case ConnectionTypeValue.U2F:
-        this.iframe.contentWindow.postMessage(msg, '*');
-        break;
       case ConnectionTypeValue.WEB_AUTHN:
         this.targetWindow.postMessage(msg, this.bridgeUrl);
         break;
