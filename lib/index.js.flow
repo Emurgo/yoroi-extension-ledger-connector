@@ -20,7 +20,7 @@ const PURPOSE = 44;
 const COIN_TYPE = 1815; // Cardano
 
 const BRIDGE_URL = 'https://emurgo.github.io/yoroi-extension-ledger-connect';
-export const YOROI_LEDGER_BRIDGE_TARGET_NAME = 'YOROI-LEDGER-BRIDGE';
+export const YOROI_LEDGER_CONNECT_TARGET_NAME = 'YOROI-LEDGER-CONNECT';
 
 type MessageType = {
   target?: string,
@@ -200,7 +200,7 @@ export class LedgerBridge extends EventEmitter {
     msg: MessageType,
     cb: ({ success: boolean, payload: any}) => void
   ) {
-    msg.target = YOROI_LEDGER_BRIDGE_TARGET_NAME;
+    msg.target = YOROI_LEDGER_CONNECT_TARGET_NAME;
 
     console.debug(`[YOROI-LB-CONNECTOR]::_sendMessage::${this.connectionType}::${msg.action}`);
     switch(this.connectionType) {
