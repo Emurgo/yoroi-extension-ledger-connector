@@ -76,7 +76,7 @@ export class LedgerBridge extends EventEmitter {
   _makeFullURL = (): string => {
     const parms = {
       connectionType: (this.connectionType === DEFAULT_CONNECTION_TYPE)? '' : `transport=${this.connectionType}`,
-      locale: (this.locale === DEFAULT_LOCALE)? '' : `locale=${this.connectionType}`
+      locale: (this.locale === DEFAULT_LOCALE)? '' : `locale=${this.locale}`
     }
 
     let fullURL = this.bridgeUrl + (this.bridgeUrl.endsWith('/')? '' : '/');
