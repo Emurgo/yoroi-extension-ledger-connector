@@ -33,10 +33,13 @@ export const ConnectionTypeValue = Object.freeze({
   U2F: 'u2f',
 });
 export type ConnectionType = $Values<typeof ConnectionTypeValue>;
+const DEFAULT_CONNECTION_TYPE = ConnectionTypeValue.WEB_AUTHN;
+const DEFAULT_LOCALE = 'en-US';
 
 export class LedgerBridge extends EventEmitter {
 
   bridgeUrl: string;
+  locale: string;
   connectionType: ConnectionType;
   targetWindow: window;
 
@@ -48,37 +51,63 @@ export class LedgerBridge extends EventEmitter {
    */
   constructor (config? : {
       connectionType?: ConnectionType,
-      bridgeOverride?: string
+      bridgeOverride?: string,
+      locale?: string
     }
   ) {
     super();
-    this.connectionType = (config && config.connectionType) || ConnectionTypeValue.WEB_AUTHN;
-    const bridgeURL = (config && config.bridgeOverride) || BRIDGE_URL;
-    this.bridgeUrl = `${bridgeURL}?${this.connectionType}`
+    this.bridgeUrl = (config && config.bridgeOverride) || BRIDGE_URL; // Rename BRIDGE_URL
+    this.connectionType = (config && config.connectionType) || DEFAULT_CONNECTION_TYPE;
+    this.locale = (config && config.locale) || DEFAULT_LOCALE;
     this._setupTarget();
   }
 
-  _setupTarget(): void {
+  _setupTarget = (): void => {
     switch(this.connectionType) {
       case ConnectionTypeValue.U2F:
       case ConnectionTypeValue.WEB_AUTHN:
-        this.targetWindow = window.open(this.bridgeUrl);
+        this.targetWindow = window.open(this._makeFullURL());
         break;
       default:
-        throw new Error('[YOROI-LB-CONNECTOR]:: Un-supported Transport protocol');
+        throw new Error('[YLCH] Un-supported Transport protocol');
     }
+  }
+
+  _makeFullURL = (): string => {
+    const parms = {
+      connectionType: (this.connectionType === DEFAULT_CONNECTION_TYPE)? '' : `transport=${this.connectionType}`,
+      locale: (this.locale === DEFAULT_LOCALE)? '' : `locale=${this.connectionType}`
+    }
+
+    let fullURL = this.bridgeUrl + (this.bridgeUrl.endsWith('/')? '' : '/');
+
+    let foundFirst = false;
+    for (const prop in parms) {
+      const value = parms[prop]
+      // Check own property and escape empty values
+      if (Object.prototype.hasOwnProperty.call(prop, prop) && value) {
+        // choose to prepend ? or &
+        if(!foundFirst) {
+          foundFirst = true;
+          fullURL = fullURL + `?${value}`;
+        } else {
+          fullURL = fullURL + `&${value}`;
+        }
+      }
+    }
+
+    return fullURL;
   }
 
   isBridgeReady(): Promise<boolean> {
     return new Promise((resolve, reject) => {
       this._sendMessage({
         action: 'is-ready',
-        params: {
-        },
+        params: {},
       },
       ({success, payload}) => {
         if (success) {
-          console.debug('[YOROI-LB-CONNECTOR]:: Ledger Bridge is completely loaded');
+          console.debug('[YLCH] Completely loaded');
           resolve(true);
         } else {
           reject(new Error(_prepareError(payload)))
@@ -178,7 +207,7 @@ export class LedgerBridge extends EventEmitter {
     inputs: Array<InputTypeUTxO>,
     outputs: Array<OutputTypeAddress | OutputTypeChange>
   ): Promise<SignTransactionResponse> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => { 
         this._sendMessage({
           action: 'ledger-sign-transaction',
           params: {
@@ -201,30 +230,30 @@ export class LedgerBridge extends EventEmitter {
     cb: ({ success: boolean, payload: any}) => void
   ) {
     msg.target = YOROI_LEDGER_CONNECT_TARGET_NAME;
+    console.debug(`[YLCH]::_sendMessage::${this.connectionType}::${msg.action}`);
 
-    console.debug(`[YOROI-LB-CONNECTOR]::_sendMessage::${this.connectionType}::${msg.action}`);
     switch(this.connectionType) {
       case ConnectionTypeValue.U2F:
       case ConnectionTypeValue.WEB_AUTHN:
         this.targetWindow.postMessage(msg, this.bridgeUrl);
         break;
       default:
-        throw new Error('[YOROI-LB-CONNECTOR]:: Un-supported Transport protocol');  
+        throw new Error('[YLCH] Un-supported Transport protocol');  
     }
 
     window.addEventListener('message', ({ origin, data }) => {
       if (origin !== _getOrigin(this.bridgeUrl)) {
-        throw new Error(`[YOROI-LB-CONNECTOR]::_sendMessage::EventHandler::${this.connectionType}::${msg.action}::${data.action}:: Unknown origin: ${origin}`);
+        throw new Error(`[YLCH]::_sendMessage::EventHandler::${this.connectionType}::${msg.action}::${data.action}:: Unknown origin: ${origin}`);
       }
-      console.debug(`[YOROI-LB-CONNECTOR]::_sendMessage::EventHandler::${this.connectionType}::${msg.action}::${data.action}`);
+      console.debug(`[YLCH]::_sendMessage::EventHandler::${this.connectionType}::${msg.action}::${data.action}`);
 
       if (data && data.action && data.action === `${msg.action}-reply`) {
         cb(data);
       } else {
         // TODO: https://app.clubhouse.io/emurgo/story/1829/yoroi-extension-ledger-bridge-better-event-handling
-        console.debug(`[YOROI-LB-CONNECTOR]::_sendMessage::EventHandler::${this.connectionType}::${msg.action}::${data.action}:: redundant handler`);
+        console.debug(`[YLCH]::_sendMessage::EventHandler::${this.connectionType}::${msg.action}::${data.action}:: redundant handler`);
       }
-    })
+    });
   }
 }
 
@@ -242,7 +271,7 @@ function _getOrigin(bridgeUrl: string): string {
 //   Helper Functions
 // ====================
 
-function _prepareError(payload) {
+function _prepareError(payload): string {
   return (payload && payload.error)
     ? payload.error
     : 'SOMETHING_UNEXPECTED_HAPPENED';
@@ -291,7 +320,7 @@ export function makeCardanoAccountBIP44Path (
   ];
 }
 
-export function toDerivationPathString(derivationPath: BIP32Path) {
+export function toDerivationPathString(derivationPath: BIP32Path): string {
   return `m/${derivationPath
     .map((item) => (item % HARDENED) + (item >= HARDENED ? "'" : ''))
     .join('/')}`
