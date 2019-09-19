@@ -238,8 +238,10 @@ export class LedgerBridge extends EventEmitter {
         this.targetWindow.postMessage(msg, this.bridgeUrl);
         break;
       default:
-        throw new Error('[YLCH] Un-supported Transport protocol');  
+        throw new Error('[YLCH] Un-supported Transport protocol');
     }
+
+    this.targetWindow.onunload = this._onTargetClose.bind(this, cb);
 
     window.addEventListener('message', ({ origin, data }) => {
       if (origin !== _getOrigin(this.bridgeUrl)) {
@@ -254,6 +256,14 @@ export class LedgerBridge extends EventEmitter {
         console.debug(`[YLCH]::_sendMessage::EventHandler::${this.connectionType}::${msg.action}::${data.action}:: redundant handler`);
       }
     });
+  }
+
+  _onTargetClose = (cb: ({ success: boolean, payload: any}) => void) => {
+    const data = {
+      success: false,
+      payload: {}
+    };
+    cb(data);
   }
 }
 
