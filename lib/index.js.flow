@@ -241,7 +241,7 @@ export class LedgerBridge extends EventEmitter {
         throw new Error('[YLCH] Un-supported Transport protocol');
     }
 
-    this.targetWindow.onunload = this._onTargetClose.bind(this, cb);
+    this._pollTargetForForceClose(cb);
 
     window.addEventListener('message', ({ origin, data }) => {
       if (origin !== _getOrigin(this.bridgeUrl)) {
@@ -258,12 +258,17 @@ export class LedgerBridge extends EventEmitter {
     });
   }
 
-  _onTargetClose = (cb: ({ success: boolean, payload: any}) => void) => {
-    const data = {
-      success: false,
-      payload: {}
-    };
-    cb(data);
+  _pollTargetForForceClose = (cb: ({ success: boolean, payload: any}) => void) => {
+    const timer = setInterval(() => {
+      if(this.targetWindow.closed) {
+        clearInterval(timer);
+        const data = {
+          success: false,
+          payload: {}
+        };
+        cb(data);
+      }  
+    }, 1000);
   }
 }
 
