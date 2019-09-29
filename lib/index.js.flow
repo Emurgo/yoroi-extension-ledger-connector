@@ -184,13 +184,15 @@ export class LedgerBridge extends EventEmitter {
   }
 
   showAddress(
-    hdPath: BIP32Path
+    hdPath: BIP32Path,
+    address: string
   ): Promise<void> {
     return new Promise((resolve, reject) => {
       this._sendMessage({
         action: 'ledger-show-address',
         params: {
           hdPath,
+          address
         },
       },
       ({success, payload}) => {
