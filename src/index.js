@@ -33,7 +33,7 @@ export const ConnectionTypeValue = Object.freeze({
   U2F: 'u2f',
 });
 export type ConnectionType = $Values<typeof ConnectionTypeValue>;
-export type ExtenedPubliKeyResp = {
+export type ExtenedPublicKeyResp = {
   ePublicKey: GetExtendedPublicKeyResponse,
   deviceVersion: GetVersionResponse
 };
@@ -149,7 +149,7 @@ export class LedgerBridge extends EventEmitter {
 
   getExtendedPublicKey(
     hdPath: BIP32Path
-  ): Promise<ExtenedPubliKeyResp> {
+  ): Promise<ExtenedPublicKeyResp> {
     return new Promise((resolve, reject) => {
       this._sendMessage({
         action: 'ledger-get-extended-public-key',
