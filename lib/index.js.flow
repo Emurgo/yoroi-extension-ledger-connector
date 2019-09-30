@@ -33,6 +33,10 @@ export const ConnectionTypeValue = Object.freeze({
   U2F: 'u2f',
 });
 export type ConnectionType = $Values<typeof ConnectionTypeValue>;
+export type ExtenedPubliKeyResp = {
+  ePublicKey: GetExtendedPublicKeyResponse,
+  deviceVersion: GetVersionResponse
+};
 const DEFAULT_CONNECTION_TYPE = ConnectionTypeValue.WEB_AUTHN;
 const DEFAULT_LOCALE = 'en-US';
 
@@ -145,7 +149,7 @@ export class LedgerBridge extends EventEmitter {
 
   getExtendedPublicKey(
     hdPath: BIP32Path
-  ): Promise<GetExtendedPublicKeyResponse> {
+  ): Promise<ExtenedPubliKeyResp> {
     return new Promise((resolve, reject) => {
       this._sendMessage({
         action: 'ledger-get-extended-public-key',
