@@ -66,7 +66,7 @@ export class LedgerBridge extends EventEmitter {
     this._setupTarget();
   }
 
-  _setupTarget(): void {
+  _setupTarget = (): void => {
     switch(this.connectionType) {
       case ConnectionTypeValue.U2F:
       case ConnectionTypeValue.WEB_AUTHN:
@@ -75,9 +75,9 @@ export class LedgerBridge extends EventEmitter {
       default:
         throw new Error('[YLCH] Un-supported Transport protocol');
     }
-  }
+  };
 
-  _makeFullURL(): string {
+  _makeFullURL = (): string => {
     const parms = {
       connectionType: (this.connectionType === DEFAULT_CONNECTION_TYPE)? '' : `transport=${this.connectionType}`,
       locale: (this.locale === DEFAULT_LOCALE)? '' : `locale=${this.locale}`
@@ -101,9 +101,9 @@ export class LedgerBridge extends EventEmitter {
     }
 
     return fullURL;
-  }
+  };
 
-  isBridgeReady(): Promise<boolean> {
+  isBridgeReady = (): Promise<boolean> => {
     return new Promise((resolve, reject) => {
       this._sendMessage({
         action: 'is-ready',
@@ -120,7 +120,7 @@ export class LedgerBridge extends EventEmitter {
     });
   }
 
-  dispose(): void {
+  dispose = (): void => {
     if(this.targetWindow) {
       this.targetWindow.close();
     }
@@ -130,7 +130,7 @@ export class LedgerBridge extends EventEmitter {
   //   Interface with Cardano app
   // ==============================
 
-  getVersion(): Promise<GetVersionResponse> {
+  getVersion = (): Promise<GetVersionResponse> => {
     return new Promise((resolve, reject) => {
       this._sendMessage({
         action: 'ledger-get-version',
@@ -145,11 +145,11 @@ export class LedgerBridge extends EventEmitter {
         }
       });
     });
-  }
+  };
 
-  getExtendedPublicKey(
+  getExtendedPublicKey = (
     hdPath: BIP32Path
-  ): Promise<ExtendedPublicKeyResp> {
+  ): Promise<ExtendedPublicKeyResp> => {
     return new Promise((resolve, reject) => {
       this._sendMessage({
         action: 'ledger-get-extended-public-key',
@@ -165,11 +165,11 @@ export class LedgerBridge extends EventEmitter {
         }
       })
     });
-  }
+  };
 
-  deriveAddress(
+  deriveAddress = (
     hdPath: BIP32Path
-  ): Promise<DeriveAddressResponse> {
+  ): Promise<DeriveAddressResponse> => {
     return new Promise((resolve, reject) => {
       this._sendMessage({
         action: 'ledger-derive-address',
@@ -185,12 +185,12 @@ export class LedgerBridge extends EventEmitter {
         }
       })
     });
-  }
+  };
 
-  showAddress(
+  showAddress = (
     hdPath: BIP32Path,
     address: string
-  ): Promise<void> {
+  ): Promise<void> => {
     return new Promise((resolve, reject) => {
       this._sendMessage({
         action: 'ledger-show-address',
@@ -207,12 +207,12 @@ export class LedgerBridge extends EventEmitter {
         }
       })
     });
-  }
+  };
 
-  signTransaction(
+  signTransaction = (
     inputs: Array<InputTypeUTxO>,
     outputs: Array<OutputTypeAddress | OutputTypeChange>
-  ): Promise<SignTransactionResponse> {
+  ): Promise<SignTransactionResponse> => {
     return new Promise((resolve, reject) => { 
         this._sendMessage({
           action: 'ledger-sign-transaction',
@@ -229,12 +229,12 @@ export class LedgerBridge extends EventEmitter {
           }
         })
     });
-  }
+  };
 
-  _sendMessage(
+  _sendMessage = (
     msg: MessageType,
     cb: ({ success: boolean, payload: any}) => void
-  ) {
+  ) => {
     msg.target = YOROI_LEDGER_CONNECT_TARGET_NAME;
     console.debug(`[YLCH]::_sendMessage::${this.connectionType}::${msg.action}`);
 
@@ -262,9 +262,9 @@ export class LedgerBridge extends EventEmitter {
         console.debug(`[YLCH]::_sendMessage::EventHandler::${this.connectionType}::${msg.action}::${data.action}:: redundant handler`);
       }
     });
-  }
+  };
 
-  _pollTargetForForceClose(cb: ({ success: boolean, payload: any}) => void) {
+  _pollTargetForForceClose = (cb: ({ success: boolean, payload: any}) => void) => {
     const timer = setInterval(() => {
       if(this.targetWindow.closed) {
         clearInterval(timer);
@@ -275,7 +275,7 @@ export class LedgerBridge extends EventEmitter {
         cb(data);
       }  
     }, 1000);
-  }
+  };
 }
 
 // ================
