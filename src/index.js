@@ -1,4 +1,5 @@
 // @flow
+declare var chrome;
 
 import type {
   BIP32Path,
@@ -70,7 +71,22 @@ export class LedgerBridge extends EventEmitter {
     switch(this.connectionType) {
       case ConnectionTypeValue.U2F:
       case ConnectionTypeValue.WEB_AUTHN:
-        this.targetWindow = window.open(this._makeFullURL());
+        const fullURL = this._makeFullURL();
+        this.targetWindow = window.open(fullURL);
+        chrome.windows.getCurrent(null, currentWindow => {
+          chrome.tabs.query({
+            currentWindow: true,
+            active: true,
+          }, (tabs) => {
+            chrome.tabs.create({
+              url: fullURL,
+              index: tabs[0].index + 1,
+            }, tab => {
+              this.targetWindow = tab;
+            });
+          });
+        });
+
         break;
       default:
         throw new Error('[YLCH] Un-supported Transport protocol');
