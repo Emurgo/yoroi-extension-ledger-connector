@@ -66,7 +66,7 @@ export class LedgerBridge extends EventEmitter {
     this._setupTarget();
   }
 
-  _setupTarget = (): void => {
+  _setupTarget(): void {
     switch(this.connectionType) {
       case ConnectionTypeValue.U2F:
       case ConnectionTypeValue.WEB_AUTHN:
@@ -77,7 +77,7 @@ export class LedgerBridge extends EventEmitter {
     }
   }
 
-  _makeFullURL = (): string => {
+  _makeFullURL(): string {
     const parms = {
       connectionType: (this.connectionType === DEFAULT_CONNECTION_TYPE)? '' : `transport=${this.connectionType}`,
       locale: (this.locale === DEFAULT_LOCALE)? '' : `locale=${this.locale}`
@@ -264,7 +264,7 @@ export class LedgerBridge extends EventEmitter {
     });
   }
 
-  _pollTargetForForceClose = (cb: ({ success: boolean, payload: any}) => void) => {
+  _pollTargetForForceClose(cb: ({ success: boolean, payload: any}) => void) {
     const timer = setInterval(() => {
       if(this.targetWindow.closed) {
         clearInterval(timer);
