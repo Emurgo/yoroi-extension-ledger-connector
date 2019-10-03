@@ -72,7 +72,38 @@ export class LedgerBridge extends EventEmitter {
       case ConnectionTypeValue.U2F:
       case ConnectionTypeValue.WEB_AUTHN:
         const fullURL = this._makeFullURL();
-        window.open(fullURL);
+        // window.open(fullURL);
+          // $FlowIssue chrome not declared outside
+          chrome.windows.getCurrent(null, currentWindow => {
+            // Request coming from extension popup,
+            // create new window above instead of opening new tab
+            if (currentWindow.type !== 'normal') {
+                // $FlowIssue chrome not declared outside
+                chrome.windows.create({ url: fullURL }, newWindow => {
+                    // $FlowIssue chrome not declared outside
+                    chrome.tabs.query({
+                        windowId: newWindow.id,
+                        active: true,
+                    }, tabs => {
+                      console.log('Window created on if ');
+                    });
+                });
+            } else {
+                // $FlowIssue chrome not declared outside
+                chrome.tabs.query({
+                    currentWindow: true,
+                    active: true,
+                }, (tabs) => {
+                    // $FlowIssue chrome not declared outside
+                    chrome.tabs.create({
+                        url: fullURL,
+                        index: tabs[0].index + 1,
+                    }, tab => {
+                        console.log('Window created on else');
+                    });
+                });
+            }
+        });
         // TODO: remove listener
         chrome.runtime.onConnect.addListener(this._onWebPageConnected);
         break;
@@ -229,8 +260,9 @@ export class LedgerBridge extends EventEmitter {
     });
   };
 
-  _onWebPageConnected(port: any) {
+  _onWebPageConnected = (port: any) => {
     if(port.name === YOROI_LEDGER_CONNECT_TARGET_NAME ) {
+      console.log(`port set`);
       this.browserPort = port;
     }
   }
@@ -244,6 +276,7 @@ export class LedgerBridge extends EventEmitter {
 
     if(!this.browserPort) {
       // Handle error
+      console.log(`No browserPort`);
       return;
     }
 
@@ -251,6 +284,7 @@ export class LedgerBridge extends EventEmitter {
 
     if(!this.browserPort || !this.browserPort.onMessage) {
       // Handle error
+      console.log(`No browserPort or onMessage`);
       return;
     }
 
