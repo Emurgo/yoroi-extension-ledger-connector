@@ -46,7 +46,7 @@ export class LedgerBridge extends EventEmitter {
   bridgeUrl: string;
   locale: string;
   connectionType: ConnectionType;
-  targetWindow: window;
+  browserPort: ?any; // TODO: fix type
 
   /**
    * Use `bridgeOverride` to use this library with your own website
@@ -72,7 +72,9 @@ export class LedgerBridge extends EventEmitter {
       case ConnectionTypeValue.U2F:
       case ConnectionTypeValue.WEB_AUTHN:
         const fullURL = this._makeFullURL();
-        this.targetWindow = window.open(fullURL);
+        window.open(fullURL);
+        // TODO: remove listener
+        chrome.runtime.onConnect.addListener(this._onWebPageConnected);
         break;
       default:
         throw new Error('[YLCH] Un-supported Transport protocol');
@@ -107,24 +109,18 @@ export class LedgerBridge extends EventEmitter {
 
   isBridgeReady = (): Promise<boolean> => {
     return new Promise((resolve, reject) => {
-      this._sendMessage({
-        action: 'is-ready',
-        params: {},
-      },
-      ({success, payload}) => {
-        if (success) {
-          console.debug('[YLCH] Completely loaded');
-          resolve(true);
-        } else {
-          reject(new Error(_prepareError(payload)))
-        }
-      });
+      if (this.browserPort) {
+        console.debug('[YLCH] Completely loaded');
+        resolve(true);
+      }
+
+      reject(new Error(_prepareError()));
     });
   }
 
   dispose = (): void => {
-    if(this.targetWindow) {
-      this.targetWindow.close();
+    if(this.browserPort) {
+      this.browserPort.onDisconnect();
     }
   }
 
@@ -233,6 +229,12 @@ export class LedgerBridge extends EventEmitter {
     });
   };
 
+  _onWebPageConnected(port: any) {
+    if(port.name === YOROI_LEDGER_CONNECT_TARGET_NAME ) {
+      this.browserPort = port;
+    }
+  }
+
   _sendMessage = (
     msg: MessageType,
     cb: ({ success: boolean, payload: any}) => void
@@ -240,18 +242,20 @@ export class LedgerBridge extends EventEmitter {
     msg.target = YOROI_LEDGER_CONNECT_TARGET_NAME;
     console.debug(`[YLCH]::_sendMessage::${this.connectionType}::${msg.action}`);
 
-    switch(this.connectionType) {
-      case ConnectionTypeValue.U2F:
-      case ConnectionTypeValue.WEB_AUTHN:
-        this.targetWindow.postMessage(msg, this.bridgeUrl);
-        break;
-      default:
-        throw new Error('[YLCH] Un-supported Transport protocol');
+    if(!this.browserPort) {
+      // Handle error
+      return;
     }
 
-    this._pollTargetForForceClose(cb);
+    this.browserPort.postMessage(msg);
 
-    window.addEventListener('message', ({ origin, data }) => {
+    if(!this.browserPort || !this.browserPort.onMessage) {
+      // Handle error
+      return;
+    }
+
+    // TODO: remove listener
+    this.browserPort.onMessage.addListener(({ origin, data }) => {
       if (origin !== _getOrigin(this.bridgeUrl)) {
         throw new Error(`[YLCH]::_sendMessage::EventHandler::${this.connectionType}::${msg.action}::${data.action}:: Unknown origin: ${origin}`);
       }
@@ -266,18 +270,18 @@ export class LedgerBridge extends EventEmitter {
     });
   };
 
-  _pollTargetForForceClose = (cb: ({ success: boolean, payload: any}) => void) => {
-    const timer = setInterval(() => {
-      if(this.targetWindow.closed) {
-        clearInterval(timer);
-        const data = {
-          success: false,
-          payload: {}
-        };
-        cb(data);
-      }  
-    }, 1000);
-  };
+  // _pollTargetForForceClose = (cb: ({ success: boolean, payload: any}) => void) => {
+  //   const timer = setInterval(() => {
+  //     if(this.targetWindow.closed) {
+  //       clearInterval(timer);
+  //       const data = {
+  //         success: false,
+  //         payload: {}
+  //       };
+  //       cb(data);
+  //     }  
+  //   }, 1000);
+  // };
 }
 
 // ================
