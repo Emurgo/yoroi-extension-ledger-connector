@@ -12,8 +12,6 @@ import type {
   SignTransactionResponse
 } from '@cardano-foundation/ledgerjs-hw-app-cardano';
 
-import EventEmitter from 'events';
-
 // https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki#examples
 // https://github.com/satoshilabs/slips/blob/master/slip-0044.md
 const HARDENED = 0x80000000;
@@ -41,7 +39,7 @@ export type ExtendedPublicKeyResp = {
 const DEFAULT_CONNECTION_TYPE = ConnectionTypeValue.WEB_AUTHN;
 const DEFAULT_LOCALE = 'en-US';
 
-export class LedgerBridge extends EventEmitter {
+export class LedgerBridge  {
 
   bridgeUrl: string;
   locale: string;
@@ -60,7 +58,6 @@ export class LedgerBridge extends EventEmitter {
       locale?: string
     }
   ) {
-    super();
     this.bridgeUrl = (config && config.bridgeOverride) || BRIDGE_URL; // Rename BRIDGE_URL
     this.connectionType = (config && config.connectionType) || DEFAULT_CONNECTION_TYPE;
     this.locale = (config && config.locale) || DEFAULT_LOCALE;
@@ -72,39 +69,9 @@ export class LedgerBridge extends EventEmitter {
       case ConnectionTypeValue.U2F:
       case ConnectionTypeValue.WEB_AUTHN:
         const fullURL = this._makeFullURL();
-        // window.open(fullURL);
-          // $FlowIssue chrome not declared outside
-          chrome.windows.getCurrent(null, currentWindow => {
-            // Request coming from extension popup,
-            // create new window above instead of opening new tab
-            if (currentWindow.type !== 'normal') {
-                // $FlowIssue chrome not declared outside
-                chrome.windows.create({ url: fullURL }, newWindow => {
-                    // $FlowIssue chrome not declared outside
-                    chrome.tabs.query({
-                        windowId: newWindow.id,
-                        active: true,
-                    }, tabs => {
-                      console.log('Window created on if ');
-                    });
-                });
-            } else {
-                // $FlowIssue chrome not declared outside
-                chrome.tabs.query({
-                    currentWindow: true,
-                    active: true,
-                }, (tabs) => {
-                    // $FlowIssue chrome not declared outside
-                    chrome.tabs.create({
-                        url: fullURL,
-                        index: tabs[0].index + 1,
-                    }, tab => {
-                        console.log('Window created on else');
-                    });
-                });
-            }
-        });
-        // TODO: remove listener
+        window.open(fullURL);
+
+        // TODO: remove listener??
         chrome.runtime.onConnect.addListener(this._onWebPageConnected);
         break;
       default:
@@ -138,20 +105,13 @@ export class LedgerBridge extends EventEmitter {
     return fullURL;
   };
 
-  isBridgeReady = (): Promise<boolean> => {
-    return new Promise((resolve, reject) => {
-      if (this.browserPort) {
-        console.debug('[YLCH] Completely loaded');
-        resolve(true);
-      }
-
-      reject(new Error(_prepareError()));
-    });
+  isConnectorReady = (): boolean => {
+    return this.browserPort === true;
   }
 
   dispose = (): void => {
     if(this.browserPort) {
-      this.browserPort.onDisconnect();
+      this.browserPort.disconnect();
     }
   }
 
@@ -262,7 +222,6 @@ export class LedgerBridge extends EventEmitter {
 
   _onWebPageConnected = (port: any) => {
     if(port.name === YOROI_LEDGER_CONNECT_TARGET_NAME ) {
-      console.log(`port set`);
       this.browserPort = port;
     }
   }
@@ -289,10 +248,7 @@ export class LedgerBridge extends EventEmitter {
     }
 
     // TODO: remove listener
-    this.browserPort.onMessage.addListener(({ origin, data }) => {
-      if (origin !== _getOrigin(this.bridgeUrl)) {
-        throw new Error(`[YLCH]::_sendMessage::EventHandler::${this.connectionType}::${msg.action}::${data.action}:: Unknown origin: ${origin}`);
-      }
+    this.browserPort.onMessage.addListener((data) => {
       console.debug(`[YLCH]::_sendMessage::EventHandler::${this.connectionType}::${msg.action}::${data.action}`);
 
       if (data && data.action && data.action === `${msg.action}-reply`) {
@@ -303,29 +259,6 @@ export class LedgerBridge extends EventEmitter {
       }
     });
   };
-
-  // _pollTargetForForceClose = (cb: ({ success: boolean, payload: any}) => void) => {
-  //   const timer = setInterval(() => {
-  //     if(this.targetWindow.closed) {
-  //       clearInterval(timer);
-  //       const data = {
-  //         success: false,
-  //         payload: {}
-  //       };
-  //       cb(data);
-  //     }  
-  //   }, 1000);
-  // };
-}
-
-// ================
-//   Bridge Setup
-// ================
-
-function _getOrigin(bridgeUrl: string): string {
-  const tmp = bridgeUrl.split('/');
-  tmp.splice(-1, 1);
-  return tmp.join('/');
 }
 
 // ====================
