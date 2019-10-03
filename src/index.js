@@ -106,7 +106,7 @@ export class LedgerBridge  {
   };
 
   isConnectorReady = (): boolean => {
-    return this.browserPort === true;
+    return this.browserPort != null;
   }
 
   dispose = (): void => {
