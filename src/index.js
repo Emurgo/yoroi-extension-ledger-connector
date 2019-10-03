@@ -73,20 +73,6 @@ export class LedgerBridge extends EventEmitter {
       case ConnectionTypeValue.WEB_AUTHN:
         const fullURL = this._makeFullURL();
         this.targetWindow = window.open(fullURL);
-        chrome.windows.getCurrent(null, currentWindow => {
-          chrome.tabs.query({
-            currentWindow: true,
-            active: true,
-          }, (tabs) => {
-            chrome.tabs.create({
-              url: fullURL,
-              index: tabs[0].index + 1,
-            }, tab => {
-              this.targetWindow = tab;
-            });
-          });
-        });
-
         break;
       default:
         throw new Error('[YLCH] Un-supported Transport protocol');
