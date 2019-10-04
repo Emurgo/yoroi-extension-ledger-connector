@@ -221,7 +221,7 @@ export class LedgerConnect {
   _onWebPageConnected = (port: any): void => {
     if(port.name === YOROI_LEDGER_CONNECT_TARGET_NAME ) {
       this.browserPort = port;
-      this.browserPort.onDisconnect(this._onBrowserPortDisconnect);
+      this.browserPort.onDisconnect.addListener(this._onBrowserPortDisconnect);
     }
   }
 
