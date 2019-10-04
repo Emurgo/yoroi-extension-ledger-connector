@@ -221,7 +221,6 @@ export class LedgerConnect {
   _onWebPageConnected = (port: any): void => {
     if(port.name === YOROI_LEDGER_CONNECT_TARGET_NAME ) {
       this.browserPort = port;
-      this.browserPort.onDisconnect.addListener(this._onBrowserPortDisconnect);
     }
   }
 
@@ -237,12 +236,18 @@ export class LedgerConnect {
     }
     this.browserPort.postMessage(msg);
 
+    // TODO: https://app.clubhouse.io/emurgo/story/1829/yoroi-extension-ledger-bridge-better-event-handling
     if(!this.browserPort || !this.browserPort.onMessage) {
       throw new Error(`[YLCH]::browserPort.onMessage is null::action: ${msg.action}`);
     }
-
     // TODO: remove listener??
     this.browserPort.onMessage.addListener(this._handleResponse.bind(this, msg, cb));
+
+    if(!this.browserPort || !this.browserPort.onDisconnect) {
+      throw new Error(`[YLCH]::browserPort.onDisconnect is null::action: ${msg.action}`);
+    }
+    // TODO: remove listener??
+    this.browserPort.onDisconnect.addListener(this._onBrowserPortDisconnect.bind(this, cb));
   };
 
   _handleResponse = (
@@ -255,13 +260,18 @@ export class LedgerConnect {
     if (resp && resp.action === `${req.action}-reply`) {
       cb(resp);
     } else {
-      // TODO: https://app.clubhouse.io/emurgo/story/1829/yoroi-extension-ledger-bridge-better-event-handling
       console.debug(`[YLCH]::_handleResponse::${this.connectionType}::${req.action}::${resp.action}:: redundant handler`);
     }
   }
 
-  _onBrowserPortDisconnect = (): void => {
-    console.debug(`[YLCH]::browserPort is Disconnected!!!`);
+  _onBrowserPortDisconnect = (cb: FuncResp): void => {
+    console.debug(`[YLCH]::_onBrowserPortDisconnect::browserPort is Disconnected!!!`);
+    cb({
+      success:false,
+      payload: {
+        error: 'Forcefully cancelled by user'
+      }}
+    );
   }
 
   dispose = (): void => {
