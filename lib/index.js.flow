@@ -12,120 +12,55 @@ import type {
   SignTransactionResponse
 } from '@cardano-foundation/ledgerjs-hw-app-cardano';
 
-import EventEmitter from 'events';
-
 // https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki#examples
 // https://github.com/satoshilabs/slips/blob/master/slip-0044.md
 const HARDENED = 0x80000000;
 const PURPOSE = 44;
 const COIN_TYPE = 1815; // Cardano
 
-const BRIDGE_URL = 'https://emurgo.github.io/yoroi-extension-ledger-connect';
+const CONNECTOR_URL = 'https://emurgo.github.io/yoroi-extension-ledger-connect';
 export const YOROI_LEDGER_CONNECT_TARGET_NAME = 'YOROI-LEDGER-CONNECT';
-
-type MessageType = {
-  target?: string,
-  action: string,
-  params: any
-};
 
 export const ConnectionTypeValue = Object.freeze({
   WEB_AUTHN: 'webauthn',
   U2F: 'u2f',
+  WEB_USB: 'webusb',
 });
 export type ConnectionType = $Values<typeof ConnectionTypeValue>;
 export type ExtendedPublicKeyResp = {
   ePublicKey: GetExtendedPublicKeyResponse,
   deviceVersion: GetVersionResponse
 };
+type MessageType = {
+  target?: string,
+  action: string,
+  params: any
+};
+type Config = {
+  connectorUrl?: string,
+  connectionType?: ConnectionType,
+  locale?: string
+}
+type FuncResp = ({ success: boolean, payload: any}) => void;
 const DEFAULT_CONNECTION_TYPE = ConnectionTypeValue.WEB_AUTHN;
 const DEFAULT_LOCALE = 'en-US';
 
-export class LedgerBridge extends EventEmitter {
-
-  bridgeUrl: string;
+export class LedgerConnect {
+  connectorUrl: string;
   locale: string;
   connectionType: ConnectionType;
-  targetWindow: window;
+  browserPort: ?any; // $FlowIssue TODO fix type
 
   /**
-   * Use `bridgeOverride` to use this library with your own website
+   * Use `connectorUrl` to use this library with your own website
    * 
-   * @param {*} connectionType 'webauthn' | 'u2f'
-   * @param {*} bridgeOverride 
+   * @param {*} config { connectorUrl?: string, connectionType?: ConnectionType, locale?: string }
    */
-  constructor (config? : {
-      connectionType?: ConnectionType,
-      bridgeOverride?: string,
-      locale?: string
-    }
-  ) {
-    super();
-    this.bridgeUrl = (config && config.bridgeOverride) || BRIDGE_URL; // Rename BRIDGE_URL
+  constructor (config? : Config) {
+    this.connectorUrl = (config && config.connectorUrl) || CONNECTOR_URL;
     this.connectionType = (config && config.connectionType) || DEFAULT_CONNECTION_TYPE;
     this.locale = (config && config.locale) || DEFAULT_LOCALE;
     this._setupTarget();
-  }
-
-  _setupTarget = (): void => {
-    switch(this.connectionType) {
-      case ConnectionTypeValue.U2F:
-      case ConnectionTypeValue.WEB_AUTHN:
-        const fullURL = this._makeFullURL();
-        this.targetWindow = window.open(fullURL);
-        break;
-      default:
-        throw new Error('[YLCH] Un-supported Transport protocol');
-    }
-  };
-
-  _makeFullURL = (): string => {
-    const parms = {
-      connectionType: (this.connectionType === DEFAULT_CONNECTION_TYPE)? '' : `transport=${this.connectionType}`,
-      locale: (this.locale === DEFAULT_LOCALE)? '' : `locale=${this.locale}`
-    }
-
-    let fullURL = this.bridgeUrl + (this.bridgeUrl.endsWith('/')? '' : '/');
-
-    let foundFirst = false;
-    for (const prop in parms) {
-      const value = parms[prop]
-      // Check own property and escape empty values
-      if (Object.prototype.hasOwnProperty.call(parms, prop) && value) {
-        // choose to prepend ? or &
-        if(!foundFirst) {
-          foundFirst = true;
-          fullURL = fullURL + `?${value}`;
-        } else {
-          fullURL = fullURL + `&${value}`;
-        }
-      }
-    }
-
-    return fullURL;
-  };
-
-  isBridgeReady = (): Promise<boolean> => {
-    return new Promise((resolve, reject) => {
-      this._sendMessage({
-        action: 'is-ready',
-        params: {},
-      },
-      ({success, payload}) => {
-        if (success) {
-          console.debug('[YLCH] Completely loaded');
-          resolve(true);
-        } else {
-          reject(new Error(_prepareError(payload)))
-        }
-      });
-    });
-  }
-
-  dispose = (): void => {
-    if(this.targetWindow) {
-      this.targetWindow.close();
-    }
   }
 
   // ==============================
@@ -215,7 +150,7 @@ export class LedgerBridge extends EventEmitter {
     inputs: Array<InputTypeUTxO>,
     outputs: Array<OutputTypeAddress | OutputTypeChange>
   ): Promise<SignTransactionResponse> => {
-    return new Promise((resolve, reject) => { 
+    return new Promise((resolve, reject) => {
         this._sendMessage({
           action: 'ledger-sign-transaction',
           params: {
@@ -233,61 +168,118 @@ export class LedgerBridge extends EventEmitter {
     });
   };
 
-  _sendMessage = (
-    msg: MessageType,
-    cb: ({ success: boolean, payload: any}) => void
-  ) => {
-    msg.target = YOROI_LEDGER_CONNECT_TARGET_NAME;
-    console.debug(`[YLCH]::_sendMessage::${this.connectionType}::${msg.action}`);
+  // ==============================
+  //  Target Website Management
+  // ==============================
 
+  _setupTarget = (): void => {
     switch(this.connectionType) {
       case ConnectionTypeValue.U2F:
       case ConnectionTypeValue.WEB_AUTHN:
-        this.targetWindow.postMessage(msg, this.bridgeUrl);
+      case ConnectionTypeValue.WEB_USB:
+        const fullURL = this._makeFullURL();
+        window.open(fullURL);
+
+        // TODO: remove listener??
+        chrome.runtime.onConnect.addListener(this._onWebPageConnected);
         break;
       default:
         throw new Error('[YLCH] Un-supported Transport protocol');
     }
-
-    this._pollTargetForForceClose(cb);
-
-    window.addEventListener('message', ({ origin, data }) => {
-      if (origin !== _getOrigin(this.bridgeUrl)) {
-        throw new Error(`[YLCH]::_sendMessage::EventHandler::${this.connectionType}::${msg.action}::${data.action}:: Unknown origin: ${origin}`);
-      }
-      console.debug(`[YLCH]::_sendMessage::EventHandler::${this.connectionType}::${msg.action}::${data.action}`);
-
-      if (data && data.action && data.action === `${msg.action}-reply`) {
-        cb(data);
-      } else {
-        // TODO: https://app.clubhouse.io/emurgo/story/1829/yoroi-extension-ledger-bridge-better-event-handling
-        console.debug(`[YLCH]::_sendMessage::EventHandler::${this.connectionType}::${msg.action}::${data.action}:: redundant handler`);
-      }
-    });
   };
 
-  _pollTargetForForceClose = (cb: ({ success: boolean, payload: any}) => void) => {
-    const timer = setInterval(() => {
-      if(this.targetWindow.closed) {
-        clearInterval(timer);
-        const data = {
-          success: false,
-          payload: {}
-        };
-        cb(data);
-      }  
-    }, 1000);
+  _makeFullURL = (): string => {
+    const parms = {
+      connectionType: (this.connectionType === DEFAULT_CONNECTION_TYPE)? '' : `transport=${this.connectionType}`,
+      locale: (this.locale === DEFAULT_LOCALE)? '' : `locale=${this.locale}`
+    }
+
+    let fullURL = this.connectorUrl + (this.connectorUrl.endsWith('/')? '' : '/');
+
+    let foundFirst = false;
+    for (const prop in parms) {
+      const value = parms[prop]
+      // Check own property and escape empty values
+      if (Object.prototype.hasOwnProperty.call(parms, prop) && value) {
+        // choose to prepend ? or &
+        if(!foundFirst) {
+          foundFirst = true;
+          fullURL = fullURL + `?${value}`;
+        } else {
+          fullURL = fullURL + `&${value}`;
+        }
+      }
+    }
+
+    return fullURL;
   };
-}
 
-// ================
-//   Bridge Setup
-// ================
+  isConnectorReady = (): boolean => {
+    return this.browserPort != null;
+  }
 
-function _getOrigin(bridgeUrl: string): string {
-  const tmp = bridgeUrl.split('/');
-  tmp.splice(-1, 1);
-  return tmp.join('/');
+  _onWebPageConnected = (port: any): void => {
+    if(port.name === YOROI_LEDGER_CONNECT_TARGET_NAME ) {
+      this.browserPort = port;
+    }
+  }
+
+  _sendMessage = (
+    msg: MessageType,
+    cb: FuncResp
+  ): void => {
+    msg.target = YOROI_LEDGER_CONNECT_TARGET_NAME;
+    console.debug(`[YLCH]::_sendMessage::${this.connectionType}::${msg.action}`);
+
+    if(!this.browserPort) {
+      throw new Error(`[YLCH]::browserPort is null::action: ${msg.action}`);
+    }
+    this.browserPort.postMessage(msg);
+
+    // TODO: https://app.clubhouse.io/emurgo/story/1829/yoroi-extension-ledger-bridge-better-event-handling
+    if(!this.browserPort || !this.browserPort.onMessage) {
+      throw new Error(`[YLCH]::browserPort.onMessage is null::action: ${msg.action}`);
+    }
+    // TODO: remove listener??
+    this.browserPort.onMessage.addListener(this._handleResponse.bind(this, msg, cb));
+
+    if(!this.browserPort || !this.browserPort.onDisconnect) {
+      throw new Error(`[YLCH]::browserPort.onDisconnect is null::action: ${msg.action}`);
+    }
+    // TODO: remove listener??
+    this.browserPort.onDisconnect.addListener(this._onBrowserPortDisconnect.bind(this, cb));
+  };
+
+  _handleResponse = (
+    req: MessageType,
+    cb: FuncResp,
+    resp: any,
+  ): void => {
+    console.debug(`[YLCH]::_handleResponse::${this.connectionType}::${req.action}::${resp.action}`);
+
+    if (resp && resp.action === `${req.action}-reply`) {
+      cb(resp);
+    } else {
+      console.debug(`[YLCH]::_handleResponse::${this.connectionType}::${req.action}::${resp.action}:: redundant handler`);
+    }
+  }
+
+  _onBrowserPortDisconnect = (cb: FuncResp): void => {
+    console.debug(`[YLCH]::_onBrowserPortDisconnect::browserPort is Disconnected!!!`);
+    cb({
+      success:false,
+      payload: {
+        error: 'Forcefully cancelled by user'
+      }}
+    );
+  }
+
+  dispose = (): void => {
+    // TODO: dispose other objects and listeners
+    if(this.browserPort) {
+      this.browserPort.disconnect();
+    }
+  }
 }
 
 // ====================
