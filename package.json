@@ -1,6 +1,6 @@
 {
   "name": "yoroi-extension-ledger-connect-handler",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Interface for interacting through u2f for the Cardano Ledger app",
   "author": "EMURGO.io",
   "license": "MIT",

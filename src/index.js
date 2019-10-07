@@ -27,6 +27,10 @@ export const ConnectionTypeValue = Object.freeze({
   WEB_USB: 'webusb',
 });
 export type ConnectionType = $Values<typeof ConnectionTypeValue>;
+
+const DEFAULT_CONNECTION_TYPE = ConnectionTypeValue.WEB_AUTHN;
+const DEFAULT_LOCALE = 'en-US';
+
 export type ExtendedPublicKeyResp = {
   ePublicKey: GetExtendedPublicKeyResponse,
   deviceVersion: GetVersionResponse
@@ -42,8 +46,6 @@ type Config = {
   locale?: string
 }
 type FuncResp = ({ success: boolean, payload: any}) => void;
-const DEFAULT_CONNECTION_TYPE = ConnectionTypeValue.WEB_AUTHN;
-const DEFAULT_LOCALE = 'en-US';
 
 export class LedgerConnect {
   connectorUrl: string;
@@ -177,10 +179,9 @@ export class LedgerConnect {
       case ConnectionTypeValue.U2F:
       case ConnectionTypeValue.WEB_AUTHN:
       case ConnectionTypeValue.WEB_USB:
-        const fullURL = this._makeFullURL();
+        const fullURL = _makeFullURL(this.connectorUrl, this.connectionType, this.locale);
         window.open(fullURL);
 
-        // TODO: remove listener??
         chrome.runtime.onConnect.addListener(this._onWebPageConnected);
         break;
       default:
@@ -188,38 +189,12 @@ export class LedgerConnect {
     }
   };
 
-  _makeFullURL = (): string => {
-    const parms = {
-      connectionType: (this.connectionType === DEFAULT_CONNECTION_TYPE)? '' : `transport=${this.connectionType}`,
-      locale: (this.locale === DEFAULT_LOCALE)? '' : `locale=${this.locale}`
-    }
-
-    let fullURL = this.connectorUrl + (this.connectorUrl.endsWith('/')? '' : '/');
-
-    let foundFirst = false;
-    for (const prop in parms) {
-      const value = parms[prop]
-      // Check own property and escape empty values
-      if (Object.prototype.hasOwnProperty.call(parms, prop) && value) {
-        // choose to prepend ? or &
-        if(!foundFirst) {
-          foundFirst = true;
-          fullURL = fullURL + `?${value}`;
-        } else {
-          fullURL = fullURL + `&${value}`;
-        }
-      }
-    }
-
-    return fullURL;
-  };
-
   isConnectorReady = (): boolean => {
     return this.browserPort != null;
   }
 
   _onWebPageConnected = (port: any): void => {
-    if(port.name === YOROI_LEDGER_CONNECT_TARGET_NAME ) {
+    if(port.name === YOROI_LEDGER_CONNECT_TARGET_NAME) {
       this.browserPort = port;
     }
   }
@@ -240,13 +215,11 @@ export class LedgerConnect {
     if(!this.browserPort || !this.browserPort.onMessage) {
       throw new Error(`[YLCH]::browserPort.onMessage is null::action: ${msg.action}`);
     }
-    // TODO: remove listener??
     this.browserPort.onMessage.addListener(this._handleResponse.bind(this, msg, cb));
 
     if(!this.browserPort || !this.browserPort.onDisconnect) {
       throw new Error(`[YLCH]::browserPort.onDisconnect is null::action: ${msg.action}`);
     }
-    // TODO: remove listener??
     this.browserPort.onDisconnect.addListener(this._onBrowserPortDisconnect.bind(this, cb));
   };
 
@@ -275,16 +248,54 @@ export class LedgerConnect {
   }
 
   dispose = (): void => {
-    // TODO: dispose other objects and listeners
     if(this.browserPort) {
       this.browserPort.disconnect();
     }
+    this.browserPort = undefined;
   }
 }
 
 // ====================
 //   Helper Functions
 // ====================
+
+/**
+ * Makes target full URL like:
+ * https://emurgo.github.io/yoroi-extension-ledger-connect/?transport=u2f&locale=ja-JP
+ * 
+ * @param {*} connectorUrl 
+ * @param {*} connectionType 
+ * @param {*} locale 
+ */
+function _makeFullURL(
+  connectorUrl: string,
+  connectionType: ConnectionType,
+  locale: string
+): string {
+  const parms = {
+    connectionType: (connectionType === DEFAULT_CONNECTION_TYPE)? '' : `transport=${connectionType}`,
+    locale: (locale === DEFAULT_LOCALE)? '' : `locale=${locale}`
+  }
+
+  let fullURL = connectorUrl + (connectorUrl.endsWith('/')? '' : '/');
+
+  let foundFirst = false;
+  for (const prop in parms) {
+    const value = parms[prop]
+    // Check own property and escape empty values
+    if (Object.prototype.hasOwnProperty.call(parms, prop) && value) {
+      // choose to prepend ? or &
+      if(!foundFirst) {
+        foundFirst = true;
+        fullURL = fullURL + `?${value}`;
+      } else {
+        fullURL = fullURL + `&${value}`;
+      }
+    }
+  }
+
+  return fullURL;
+};
 
 function _prepareError(payload): string {
   return (payload && payload.error)
