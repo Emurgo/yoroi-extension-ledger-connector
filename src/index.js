@@ -178,8 +178,10 @@ export class LedgerConnect {
       case ConnectionTypeValue.U2F:
       case ConnectionTypeValue.WEB_AUTHN:
       case ConnectionTypeValue.WEB_USB:
-        const fullURL = _makeFullURL(connectorUrl, this.connectionType, locale);
-        window.open(fullURL);
+        this.fullURL = _makeFullURL(connectorUrl, this.connectionType, locale);
+
+        console.debug(`Opening: ${this.fullURL}`);
+        window.open(this.fullURL);
 
         chrome.runtime.onConnect.addListener(this._onWebPageConnected);
         break;
