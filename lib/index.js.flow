@@ -48,8 +48,7 @@ type Config = {
 type FuncResp = ({ success: boolean, payload: any}) => void;
 
 export class LedgerConnect {
-  connectorUrl: string;
-  locale: string;
+  fullURL: string;
   connectionType: ConnectionType;
   browserPort: ?any; // $FlowIssue TODO fix type
 
@@ -59,10 +58,10 @@ export class LedgerConnect {
    * @param {*} config { connectorUrl?: string, connectionType?: ConnectionType, locale?: string }
    */
   constructor (config? : Config) {
-    this.connectorUrl = (config && config.connectorUrl) || CONNECTOR_URL;
+    const connectorUrl = (config && config.connectorUrl) || CONNECTOR_URL;
     this.connectionType = (config && config.connectionType) || DEFAULT_CONNECTION_TYPE;
-    this.locale = (config && config.locale) || DEFAULT_LOCALE;
-    this._setupTarget();
+    const locale = (config && config.locale) || DEFAULT_LOCALE;
+    this._setupTarget(connectorUrl, locale);
   }
 
   // ==============================
@@ -174,12 +173,12 @@ export class LedgerConnect {
   //  Target Website Management
   // ==============================
 
-  _setupTarget = (): void => {
+  _setupTarget = (connectorUrl: string, locale: string): void => {
     switch(this.connectionType) {
       case ConnectionTypeValue.U2F:
       case ConnectionTypeValue.WEB_AUTHN:
       case ConnectionTypeValue.WEB_USB:
-        const fullURL = _makeFullURL(this.connectorUrl, this.connectionType, this.locale);
+        const fullURL = _makeFullURL(connectorUrl, this.connectionType, locale);
         window.open(fullURL);
 
         chrome.runtime.onConnect.addListener(this._onWebPageConnected);
@@ -190,11 +189,16 @@ export class LedgerConnect {
   };
 
   isConnectorReady = (): boolean => {
-    return this.browserPort != null;
+    if (this.browserPort && this.browserPort.sender.tab.status) {
+      return true;
+    }
+    return false;
   }
 
   _onWebPageConnected = (port: any): void => {
-    if(port.name === YOROI_LEDGER_CONNECT_TARGET_NAME) {
+    if(port.name === YOROI_LEDGER_CONNECT_TARGET_NAME &&
+      port.sender.id  === chrome.runtime.id &&
+      port.sender.url === this.fullURL) {
       this.browserPort = port;
     }
   }
