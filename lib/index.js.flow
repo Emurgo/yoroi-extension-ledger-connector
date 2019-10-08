@@ -50,8 +50,9 @@ type FuncResp = ({ success: boolean, payload: any}) => void;
 export class LedgerConnect {
   fullURL: string;
   connectionType: ConnectionType;
-  browserPort: ?any; // $FlowIssue TODO fix type
-  targetWindow: ?any // $FlowIssue TODO fix type
+  targetWindow: ?any; // $FlowIssue TODO fix type
+  extensionPort: ?any; // $FlowIssue TODO fix type
+  extensionTabId: number;
 
   /**
    * Use `connectorUrl` to use this library with your own website
@@ -203,35 +204,42 @@ export class LedgerConnect {
    * @returns void
    */
   _openTarget = (): void => {
-    if (this.fullURL) {
-      chrome.tabs.query({
-        currentWindow: true,
-        active: true,
-      }, (tabs) => {
-        console.debug(`[YLCH] Opening: ${this.fullURL}`);
-        chrome.tabs.create({
-            url: this.fullURL,
-            index: tabs[0].index + 1,
-        }, tab => {
-          this.targetWindow = tab;
-          chrome.runtime.onConnect.addListener(this._onWebPageConnected);
-        });
-      });
-    } else {
+    if (!this.fullURL) {
       throw new Error(`[YLCH] Not a valid target URL: ${this.fullURL}`);
     }
+
+    chrome.tabs.query({
+      currentWindow: true,
+      active: true,
+    }, (tabs) => {
+      const curTab = tabs[0];
+      if (!curTab) {
+        throw new Error(`[YLCH] Something wrong with browser tabs`);
+      }
+      this.extensionTabId = curTab.id;
+      console.debug(`[YLCH] Opening: ${this.fullURL}`);
+
+      // Opening new tab, right next to the Yoroi Extension
+      chrome.tabs.create({
+          url: this.fullURL,
+          index: curTab.index + 1,
+      }, tab => {
+        this.targetWindow = tab;
+        chrome.runtime.onConnect.addListener(this._onWebPageConnected);
+      });
+    });
   }
 
   /**
-   * If browser port exists that means we are connected with the target WebSite
+   * If extension port exists that means we are connected with the target WebSite
    * @returns boolean
    */
   isConnectorReady = (): boolean => {
-    return this.browserPort != null;
+    return this.extensionPort != null;
   };
 
   /**
-   * Stores browser port of target WebPage
+   * Stores extension port of target WebPage
    * @param {*} port: any
    * @returns void
    */
@@ -241,7 +249,7 @@ export class LedgerConnect {
     if(port.name === YOROI_LEDGER_CONNECT_TARGET_NAME &&
       port.sender.id  === chrome.runtime.id &&
       port.sender.url === this.fullURL) {
-      this.browserPort = port;
+      this.extensionPort = port;
     }
   };
 
@@ -260,20 +268,20 @@ export class LedgerConnect {
     msg.target = YOROI_LEDGER_CONNECT_TARGET_NAME;
     console.debug(`[YLCH]::_sendMessage::${this.connectionType}::${msg.action}`);
 
-    if(!this.browserPort) {
-      throw new Error(`[YLCH]::browserPort is null::action: ${msg.action}`);
+    if(!this.extensionPort) {
+      throw new Error(`[YLCH]::extensionPort is null::action: ${msg.action}`);
     }
-    this.browserPort.postMessage(msg);
+    this.extensionPort.postMessage(msg);
 
-    if(!this.browserPort || !this.browserPort.onMessage) {
-      throw new Error(`[YLCH]::browserPort.onMessage is null::action: ${msg.action}`);
+    if(!this.extensionPort || !this.extensionPort.onMessage) {
+      throw new Error(`[YLCH]::extensionPort.onMessage is null::action: ${msg.action}`);
     }
-    this.browserPort.onMessage.addListener(this._handleResponse.bind(this, msg, cb));
+    this.extensionPort.onMessage.addListener(this._handleResponse.bind(this, msg, cb));
 
-    if(!this.browserPort || !this.browserPort.onDisconnect) {
-      throw new Error(`[YLCH]::browserPort.onDisconnect is null::action: ${msg.action}`);
+    if(!this.extensionPort || !this.extensionPort.onDisconnect) {
+      throw new Error(`[YLCH]::extensionPort.onDisconnect is null::action: ${msg.action}`);
     }
-    this.browserPort.onDisconnect.addListener(this._onBrowserPortDisconnect.bind(this, cb));
+    this.extensionPort.onDisconnect.addListener(this._onextensionPortDisconnect.bind(this, cb));
   };
 
   /**
@@ -304,8 +312,8 @@ export class LedgerConnect {
    * @param {*} cb: FuncResp
    * @returns void
    */
-  _onBrowserPortDisconnect = (cb: FuncResp): void => {
-    console.debug(`[YLCH]::_onBrowserPortDisconnect::browserPort is Disconnected!!!`);
+  _onextensionPortDisconnect = (cb: FuncResp): void => {
+    console.debug(`[YLCH]::_onextensionPortDisconnect::extensionPort is Disconnected!!!`);
     cb({
       success:false,
       payload: {
@@ -316,20 +324,28 @@ export class LedgerConnect {
 
   /**
    * This method must be called after success or failure,
-   * this.browserPort.disconnect() will close the target WebSite
+   * this.extensionPort.disconnect() will close the target WebSite
    * @returns void
    */
   dispose = (): void => {
-    if(this.browserPort) {
-      this.browserPort.disconnect();
-      this.browserPort = undefined;
-      console.debug('[YLCH] disconnected browser port');
+    if (this.extensionTabId) {
+      chrome.tabs.update(this.extensionTabId, {
+        active: true
+      });
+      this.extensionTabId = 0;
+      console.debug('[YLCH] Made Yoroi Extension active');
     }
 
     if (this.targetWindow) {
       chrome.tabs.remove(this.targetWindow.id);
       this.targetWindow = undefined
       console.debug('[YLCH] closed target window');
+    }    
+
+    if(this.extensionPort) {
+      this.extensionPort.disconnect();
+      this.extensionPort = undefined;
+      console.debug('[YLCH] disconnected extension port');
     }
   };
 }
