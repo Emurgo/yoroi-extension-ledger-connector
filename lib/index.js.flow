@@ -173,14 +173,24 @@ export class LedgerConnect {
   //  Target Website Management
   // ==============================
 
-  _setupTarget = (connectorUrl: string, locale: string): void => {
+  /**
+   * Prepares and opens target WebSite
+   * 
+   * @param {*} connectorUrl: string
+   * @param {*} locale      : string
+   * @returns void
+   */
+  _setupTarget = (
+    connectorUrl: string,
+    locale: string
+  ): void => {
     switch(this.connectionType) {
       case ConnectionTypeValue.U2F:
       case ConnectionTypeValue.WEB_AUTHN:
       case ConnectionTypeValue.WEB_USB:
         this.fullURL = _makeFullURL(connectorUrl, this.connectionType, locale);
 
-        console.debug(`Opening: ${this.fullURL}`);
+        console.debug(`[YLCH] Opening: ${this.fullURL}`);
         window.open(this.fullURL);
 
         chrome.runtime.onConnect.addListener(this._onWebPageConnected);
@@ -190,21 +200,37 @@ export class LedgerConnect {
     }
   };
 
+  /**
+   * If browser port exists that means we are connected with the target WebSite
+   * @returns boolean
+   */
   isConnectorReady = (): boolean => {
-    if (this.browserPort && this.browserPort.sender.tab.status) {
-      return true;
-    }
-    return false;
-  }
+    return this.browserPort != null;
+  };
 
-  _onWebPageConnected = (port: any): void => {
+  /**
+   * Stores browser port of target WebPage
+   * @param {*} port: any
+   * @returns void
+   */
+  _onWebPageConnected = (
+    port: any
+  ): void => {
     if(port.name === YOROI_LEDGER_CONNECT_TARGET_NAME &&
       port.sender.id  === chrome.runtime.id &&
       port.sender.url === this.fullURL) {
       this.browserPort = port;
     }
-  }
+  };
 
+  /**
+   * Sends request to the target WebSite
+   * TODO: https://app.clubhouse.io/emurgo/story/1829/yoroi-extension-ledger-bridge-better-event-handling
+   * 
+   * @param {*} msg: MessageType
+   * @param {*} cb : FuncResp
+   * @returns void
+   */
   _sendMessage = (
     msg: MessageType,
     cb: FuncResp
@@ -217,7 +243,6 @@ export class LedgerConnect {
     }
     this.browserPort.postMessage(msg);
 
-    // TODO: https://app.clubhouse.io/emurgo/story/1829/yoroi-extension-ledger-bridge-better-event-handling
     if(!this.browserPort || !this.browserPort.onMessage) {
       throw new Error(`[YLCH]::browserPort.onMessage is null::action: ${msg.action}`);
     }
@@ -229,6 +254,14 @@ export class LedgerConnect {
     this.browserPort.onDisconnect.addListener(this._onBrowserPortDisconnect.bind(this, cb));
   };
 
+  /**
+   * Handles response from WebSite, besically passes result back to Yoroi
+   * 
+   * @param {*} req : MessageType
+   * @param {*} cb  : FuncResp
+   * @param {*} resp: any
+   * @returns void
+   */
   _handleResponse = (
     req: MessageType,
     cb: FuncResp,
@@ -241,8 +274,14 @@ export class LedgerConnect {
     } else {
       console.debug(`[YLCH]::_handleResponse::${this.connectionType}::${req.action}::${resp.action}:: redundant handler`);
     }
-  }
+  };
 
+  /**
+   * If Website is closed forcefully then error will be thrown back to Yoroi
+   * 
+   * @param {*} cb: FuncResp
+   * @returns void
+   */
   _onBrowserPortDisconnect = (cb: FuncResp): void => {
     console.debug(`[YLCH]::_onBrowserPortDisconnect::browserPort is Disconnected!!!`);
     cb({
@@ -251,14 +290,19 @@ export class LedgerConnect {
         error: 'Forcefully cancelled by user'
       }}
     );
-  }
+  };
 
+  /**
+   * This method must be called after success or failure,
+   * this.browserPort.disconnect() will close the target WebSite
+   * @returns void
+   */
   dispose = (): void => {
     if(this.browserPort) {
       this.browserPort.disconnect();
     }
     this.browserPort = undefined;
-  }
+  };
 }
 
 // ====================
@@ -271,7 +315,8 @@ export class LedgerConnect {
  * 
  * @param {*} connectorUrl 
  * @param {*} connectionType 
- * @param {*} locale 
+ * @param {*} locale
+ * @returns string
  */
 function _makeFullURL(
   connectorUrl: string,
@@ -303,6 +348,12 @@ function _makeFullURL(
   return fullURL;
 };
 
+/**
+ * Restructures error object from payload
+ * 
+ * @param {*} payload 
+ * @returns string
+ */
 function _prepareError(payload): string {
   return (payload && payload.error)
     ? payload.error
@@ -319,6 +370,7 @@ function _prepareError(payload): string {
  * @param {*} account account index eg: { 0 = first account , 1 = second account ...}
  * @param {*} chain 0 = external or 1 = change
  * @param {*} address address index eg: { 0 = first address , 1 = second address ...}
+ * @returns BIP32Path
  */
 export function makeCardanoBIP44Path (
   account: number,
@@ -341,6 +393,9 @@ export function makeCardanoBIP44Path (
  * https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki#examples
  * Ledger (according to current security rules) denies any derivation path which does not start with
  *  `[HD+44, HD+1815, HD+(account)]`
+ * 
+ * @param {*} account
+ * @returns BIP32Path
  */
 export function makeCardanoAccountBIP44Path (
   account: number,
@@ -352,6 +407,12 @@ export function makeCardanoAccountBIP44Path (
   ];
 }
 
+/**
+ * Converts BIP32Path to string version (like m/44'/1815'/0'/0/0)
+ * 
+ * @param {*} derivationPath 
+ * @returns string
+ */
 export function toDerivationPathString(derivationPath: BIP32Path): string {
   return `m/${derivationPath
     .map((item) => (item % HARDENED) + (item >= HARDENED ? "'" : ''))
