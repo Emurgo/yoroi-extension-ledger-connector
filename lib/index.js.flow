@@ -51,6 +51,7 @@ export class LedgerConnect {
   fullURL: string;
   connectionType: ConnectionType;
   browserPort: ?any; // $FlowIssue TODO fix type
+  targetWindow: ?any // $FlowIssue TODO fix type
 
   /**
    * Use `connectorUrl` to use this library with your own website
@@ -58,8 +59,8 @@ export class LedgerConnect {
    * @param {*} config { connectorUrl?: string, connectionType?: ConnectionType, locale?: string }
    */
   constructor (config? : Config) {
-    const connectorUrl = (config && config.connectorUrl) || CONNECTOR_URL;
     this.connectionType = (config && config.connectionType) || DEFAULT_CONNECTION_TYPE;
+    const connectorUrl = (config && config.connectorUrl) || CONNECTOR_URL;
     const locale = (config && config.locale) || DEFAULT_LOCALE;
     this._setupTarget(connectorUrl, locale);
   }
@@ -189,16 +190,37 @@ export class LedgerConnect {
       case ConnectionTypeValue.WEB_AUTHN:
       case ConnectionTypeValue.WEB_USB:
         this.fullURL = _makeFullURL(connectorUrl, this.connectionType, locale);
-
-        console.debug(`[YLCH] Opening: ${this.fullURL}`);
-        window.open(this.fullURL);
-
-        chrome.runtime.onConnect.addListener(this._onWebPageConnected);
+        this._openTarget();
         break;
       default:
         throw new Error('[YLCH] Un-supported Transport protocol');
     }
   };
+
+  /**
+   * Opens target WebSite
+   * 
+   * @returns void
+   */
+  _openTarget = (): void => {
+    if (this.fullURL) {
+      chrome.tabs.query({
+        currentWindow: true,
+        active: true,
+      }, (tabs) => {
+        console.debug(`[YLCH] Opening: ${this.fullURL}`);
+        chrome.tabs.create({
+            url: this.fullURL,
+            index: tabs[0].index + 1,
+        }, tab => {
+          this.targetWindow = tab;
+          chrome.runtime.onConnect.addListener(this._onWebPageConnected);
+        });
+      });
+    } else {
+      throw new Error(`[YLCH] Not a valid target URL: ${this.fullURL}`);
+    }
+  }
 
   /**
    * If browser port exists that means we are connected with the target WebSite
@@ -300,8 +322,15 @@ export class LedgerConnect {
   dispose = (): void => {
     if(this.browserPort) {
       this.browserPort.disconnect();
+      this.browserPort = undefined;
+      console.debug('[YLCH] disconnected browser port');
     }
-    this.browserPort = undefined;
+
+    if (this.targetWindow) {
+      chrome.tabs.remove(this.targetWindow.id);
+      this.targetWindow = undefined
+      console.debug('[YLCH] closed target window');
+    }
   };
 }
 
