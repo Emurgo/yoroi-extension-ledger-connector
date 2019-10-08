@@ -265,22 +265,22 @@ export class LedgerConnect {
     cb: FuncResp
   ): void => {
     msg.target = YOROI_LEDGER_CONNECT_TARGET_NAME;
-    console.debug(`[YLCH]::_sendMessage::${this.connectionType}::${msg.action}`);
+    console.debug(`[YLCH] _sendMessage::${this.connectionType}::${msg.action}`);
 
     if(!this.extensionPort) {
-      throw new Error(`[YLCH]::extensionPort is null::action: ${msg.action}`);
+      throw new Error(`[YLCH] extensionPort is null::action: ${msg.action}`);
     }
     this.extensionPort.postMessage(msg);
 
     // $FlowIssue TODO fix type
     if(!this.extensionPort || !this.extensionPort.onMessage) {
-      throw new Error(`[YLCH]::extensionPort.onMessage is null::action: ${msg.action}`);
+      throw new Error(`[YLCH] extensionPort.onMessage is null::action: ${msg.action}`);
     }
     this.extensionPort.onMessage.addListener(this._handleResponse.bind(this, msg, cb));
 
     // $FlowIssue TODO fix type
     if(!this.extensionPort || !this.extensionPort.onDisconnect) {
-      throw new Error(`[YLCH]::extensionPort.onDisconnect is null::action: ${msg.action}`);
+      throw new Error(`[YLCH] extensionPort.onDisconnect is null::action: ${msg.action}`);
     }
     this.extensionPort.onDisconnect.addListener(this._onextensionPortDisconnect.bind(this, cb));
   };
@@ -300,9 +300,9 @@ export class LedgerConnect {
   ): void => {
     if (resp && resp.action === `${req.action}-reply`) {
       cb(resp);
-      console.debug(`[YLCH]::_handleResponse::${this.connectionType}::${req.action}::${resp.action}`);
+      console.debug(`[YLCH] _handleResponse::${this.connectionType}::${req.action}::${resp.action}`);
     } else {
-      console.debug(`[YLCH]::_handleResponse::${this.connectionType}::${req.action}::${resp.action}:: redundant handler`);
+      console.debug(`[YLCH] _handleResponse::${this.connectionType}::${req.action}::${resp.action}:: redundant handler`);
     }
   };
 
@@ -313,7 +313,7 @@ export class LedgerConnect {
    * @returns void
    */
   _onextensionPortDisconnect = (cb: FuncResp): void => {
-    console.debug(`[YLCH]::_onextensionPortDisconnect::extensionPort is Disconnected!!!`);
+    console.debug(`[YLCH] _onextensionPortDisconnect::extensionPort is Disconnected!!!`);
     cb({
       success:false,
       payload: {
@@ -339,7 +339,7 @@ export class LedgerConnect {
     if (this.targetWindow) {
       chrome.tabs.remove(this.targetWindow.id);
       this.targetWindow = undefined
-      console.debug('[YLCH] closed target window');
+      console.debug('[YLCH] closed target Website');
     }    
 
     if(this.extensionPort) {
