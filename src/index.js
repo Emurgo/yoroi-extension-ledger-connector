@@ -255,7 +255,6 @@ export class LedgerConnect {
 
   /**
    * Sends request to the target WebSite
-   * TODO: https://app.clubhouse.io/emurgo/story/1829/yoroi-extension-ledger-bridge-better-event-handling
    * 
    * @param {*} msg: MessageType
    * @param {*} cb : FuncResp
@@ -273,11 +272,13 @@ export class LedgerConnect {
     }
     this.extensionPort.postMessage(msg);
 
+    // $FlowIssue TODO fix type
     if(!this.extensionPort || !this.extensionPort.onMessage) {
       throw new Error(`[YLCH]::extensionPort.onMessage is null::action: ${msg.action}`);
     }
     this.extensionPort.onMessage.addListener(this._handleResponse.bind(this, msg, cb));
 
+    // $FlowIssue TODO fix type
     if(!this.extensionPort || !this.extensionPort.onDisconnect) {
       throw new Error(`[YLCH]::extensionPort.onDisconnect is null::action: ${msg.action}`);
     }
@@ -297,10 +298,9 @@ export class LedgerConnect {
     cb: FuncResp,
     resp: any,
   ): void => {
-    console.debug(`[YLCH]::_handleResponse::${this.connectionType}::${req.action}::${resp.action}`);
-
     if (resp && resp.action === `${req.action}-reply`) {
       cb(resp);
+      console.debug(`[YLCH]::_handleResponse::${this.connectionType}::${req.action}::${resp.action}`);
     } else {
       console.debug(`[YLCH]::_handleResponse::${this.connectionType}::${req.action}::${resp.action}:: redundant handler`);
     }

@@ -1,6 +1,6 @@
 {
   "name": "yoroi-extension-ledger-connect-handler",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Interface for communication with Cardano Ledger app",
   "author": "EMURGO.io",
   "license": "MIT",
