@@ -186,6 +186,9 @@ export class LedgerConnect {
     connectorUrl: string,
     locale: string
   ): void => {
+    // Close target Website when Yoroi is forcefully closed or refreshed (F5)
+    window.addEventListener('beforeunload', this.dispose);
+
     switch(this.connectionType) {
       case ConnectionTypeValue.U2F:
       case ConnectionTypeValue.WEB_AUTHN:
