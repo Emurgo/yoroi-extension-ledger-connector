@@ -28,13 +28,39 @@ export const ConnectionTypeValue = Object.freeze({
 });
 export type ConnectionType = $Values<typeof ConnectionTypeValue>;
 
+export const DEVICE_CODE = Object.freeze({
+  NONE: 'none',
+  NANO_S: 's',
+  NANO_X: 'x',
+});
+export type DeviceCodeType = $Values<typeof DEVICE_CODE>;
+
 const DEFAULT_CONNECTION_TYPE = ConnectionTypeValue.WEB_AUTHN;
 const DEFAULT_LOCALE = 'en-US';
 
+/* Response Types */
 export type ExtendedPublicKeyResp = {
   ePublicKey: GetExtendedPublicKeyResponse,
-  deviceVersion: GetVersionResponse
+  deviceVersion: GetVersionResponse,
+  deviceCode: DeviceCodeType,
 };
+export type SignTxResp = {
+  signedTx: SignTransactionResponse,
+  deviceCode: DeviceCodeType,
+};
+export type ShowAddressResp = {
+  showAddress: void,
+  deviceCode: DeviceCodeType,
+};
+export type DeriveAddressResp = {
+  derivedAddress: DeriveAddressResponse,
+  deviceCode: DeviceCodeType,
+};
+export type DeviceVersionResp = {
+  deviceVersion: GetVersionResponse,
+  deviceCode: DeviceCodeType,
+};
+
 type MessageType = {
   target?: string,
   action: string,
@@ -70,26 +96,7 @@ export class LedgerConnect {
   //   Interface with Cardano app
   // ==============================
 
-  getVersion = (): Promise<GetVersionResponse> => {
-    return new Promise((resolve, reject) => {
-      this._sendMessage({
-        action: 'ledger-get-version',
-        params: {
-        },
-      },
-      ({success, payload}) => {
-        if (success) {
-          resolve(payload);
-        } else {
-          reject(new Error(_prepareError(payload)))
-        }
-      });
-    });
-  };
-
-  getExtendedPublicKey = (
-    hdPath: BIP32Path
-  ): Promise<ExtendedPublicKeyResp> => {
+  getExtendedPublicKey = (hdPath: BIP32Path): Promise<ExtendedPublicKeyResp> => {
     return new Promise((resolve, reject) => {
       this._sendMessage({
         action: 'ledger-get-extended-public-key',
@@ -107,52 +114,10 @@ export class LedgerConnect {
     });
   };
 
-  deriveAddress = (
-    hdPath: BIP32Path
-  ): Promise<DeriveAddressResponse> => {
-    return new Promise((resolve, reject) => {
-      this._sendMessage({
-        action: 'ledger-derive-address',
-        params: {
-          hdPath,
-        },
-      },
-      ({success, payload}) => {
-        if (success) {
-          resolve(payload);
-        } else {
-          reject(new Error(_prepareError(payload)))
-        }
-      })
-    });
-  };
-
-  showAddress = (
-    hdPath: BIP32Path,
-    address: string
-  ): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      this._sendMessage({
-        action: 'ledger-show-address',
-        params: {
-          hdPath,
-          address
-        },
-      },
-      ({success, payload}) => {
-        if (success) {
-          resolve(payload);
-        } else {
-          reject(new Error(_prepareError(payload)))
-        }
-      })
-    });
-  };
-
   signTransaction = (
     inputs: Array<InputTypeUTxO>,
     outputs: Array<OutputTypeAddress | OutputTypeChange>
-  ): Promise<SignTransactionResponse> => {
+  ): Promise<SignTxResp> => {
     return new Promise((resolve, reject) => {
         this._sendMessage({
           action: 'ledger-sign-transaction',
@@ -171,6 +136,60 @@ export class LedgerConnect {
     });
   };
 
+  showAddress = (hdPath: BIP32Path, address: string): Promise<ShowAddressResp> => {
+    return new Promise((resolve, reject) => {
+      this._sendMessage({
+        action: 'ledger-show-address',
+        params: {
+          hdPath,
+          address
+        },
+      },
+      ({success, payload}) => {
+        if (success) {
+          resolve(payload);
+        } else {
+          reject(new Error(_prepareError(payload)))
+        }
+      })
+    });
+  };
+
+  deriveAddress = (hdPath: BIP32Path): Promise<DeriveAddressResp> => {
+    return new Promise((resolve, reject) => {
+      this._sendMessage({
+        action: 'ledger-derive-address',
+        params: {
+          hdPath,
+        },
+      },
+      ({success, payload}) => {
+        if (success) {
+          resolve(payload);
+        } else {
+          reject(new Error(_prepareError(payload)))
+        }
+      })
+    });
+  };
+
+  getVersion = (): Promise<DeviceVersionResp> => {
+    return new Promise((resolve, reject) => {
+      this._sendMessage({
+        action: 'ledger-get-version',
+        params: {
+        },
+      },
+      ({success, payload}) => {
+        if (success) {
+          resolve(payload);
+        } else {
+          reject(new Error(_prepareError(payload)))
+        }
+      });
+    });
+  };
+
   // ==============================
   //  Target Website Management
   // ==============================
@@ -182,10 +201,7 @@ export class LedgerConnect {
    * @param {*} locale      : string
    * @returns void
    */
-  _setupTarget = (
-    connectorUrl: string,
-    locale: string
-  ): void => {
+  _setupTarget = (connectorUrl: string, locale: string): void => {
     // Close target Website when Yoroi is forcefully closed or refreshed (F5)
     window.addEventListener('beforeunload', this.dispose);
 
@@ -246,13 +262,13 @@ export class LedgerConnect {
    * @param {*} port: any
    * @returns void
    */
-  _onWebPageConnected = (
-    port: any
-  ): void => {
+  _onWebPageConnected = (port: any): void => {
     if(port.name === YOROI_LEDGER_CONNECT_TARGET_NAME &&
       port.sender.id  === chrome.runtime.id &&
       port.sender.url === this.fullURL) {
       this.extensionPort = port;
+    } else {
+      console.error(`[YLCH Wrong port is trying to connect, PortName: ${port.name} SenderId: ${port.sender.id} SenderURL: ${port.sender.url}]`);
     }
   };
 
@@ -263,10 +279,7 @@ export class LedgerConnect {
    * @param {*} cb : FuncResp
    * @returns void
    */
-  _sendMessage = (
-    msg: MessageType,
-    cb: FuncResp
-  ): void => {
+  _sendMessage = (msg: MessageType, cb: FuncResp): void => {
     msg.target = YOROI_LEDGER_CONNECT_TARGET_NAME;
     console.debug(`[YLCH] _sendMessage::${this.connectionType}::${msg.action}`);
 
@@ -296,11 +309,7 @@ export class LedgerConnect {
    * @param {*} resp: any
    * @returns void
    */
-  _handleResponse = (
-    req: MessageType,
-    cb: FuncResp,
-    resp: any,
-  ): void => {
+  _handleResponse = ( req: MessageType, cb: FuncResp, resp: any): void => {
     if (resp && resp.action === `${req.action}-reply`) {
       cb(resp);
       console.debug(`[YLCH] _handleResponse::${this.connectionType}::${req.action}::${resp.action}`);
