@@ -3,6 +3,7 @@ declare var chrome;
 
 import type {
   ConnectionType,
+  DeviceCodeType,
   Config,
   MessageType,
   FuncResp,
@@ -53,12 +54,16 @@ export default class LedgerConnect {
   //   Interface with Cardano app
   // ==============================
 
-  getExtendedPublicKey = (hdPath: BIP32Path): Promise<ExtendedPublicKeyResp> => {
+  getExtendedPublicKey = (
+    hdPath: BIP32Path,
+    knownDeviceCode?: DeviceCodeType
+  ): Promise<ExtendedPublicKeyResp> => {
     return new Promise((resolve, reject) => {
       this._sendMessage({
         action: 'ledger-get-extended-public-key',
         params: {
           hdPath,
+          knownDeviceCode
         },
       },
       ({success, payload}) => {
@@ -73,14 +78,16 @@ export default class LedgerConnect {
 
   signTransaction = (
     inputs: Array<InputTypeUTxO>,
-    outputs: Array<OutputTypeAddress | OutputTypeChange>
+    outputs: Array<OutputTypeAddress | OutputTypeChange>,
+    knownDeviceCode?: DeviceCodeType
   ): Promise<SignTxResp> => {
     return new Promise((resolve, reject) => {
         this._sendMessage({
           action: 'ledger-sign-transaction',
           params: {
             inputs,
-            outputs
+            outputs,
+            knownDeviceCode
           },
         },
         ({success, payload}) => {
@@ -93,13 +100,18 @@ export default class LedgerConnect {
     });
   };
 
-  showAddress = (hdPath: BIP32Path, address: string): Promise<ShowAddressResp> => {
+  showAddress = (
+    hdPath: BIP32Path,
+    address: string,
+    knownDeviceCode?: DeviceCodeType
+  ): Promise<ShowAddressResp> => {
     return new Promise((resolve, reject) => {
       this._sendMessage({
         action: 'ledger-show-address',
         params: {
           hdPath,
-          address
+          address,
+          knownDeviceCode
         },
       },
       ({success, payload}) => {
@@ -112,12 +124,16 @@ export default class LedgerConnect {
     });
   };
 
-  deriveAddress = (hdPath: BIP32Path): Promise<DeriveAddressResp> => {
+  deriveAddress = (
+    hdPath: BIP32Path,
+    knownDeviceCode?: DeviceCodeType
+  ): Promise<DeriveAddressResp> => {
     return new Promise((resolve, reject) => {
       this._sendMessage({
         action: 'ledger-derive-address',
         params: {
           hdPath,
+          knownDeviceCode
         },
       },
       ({success, payload}) => {
@@ -130,11 +146,12 @@ export default class LedgerConnect {
     });
   };
 
-  getVersion = (): Promise<DeviceVersionResp> => {
+  getVersion = (knownDeviceCode?: DeviceCodeType): Promise<DeviceVersionResp> => {
     return new Promise((resolve, reject) => {
       this._sendMessage({
         action: 'ledger-get-version',
         params: {
+          knownDeviceCode,
         },
       },
       ({success, payload}) => {
