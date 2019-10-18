@@ -1,18 +1,25 @@
 // @flow //
 
 import type {
+  BIP32Path,
+  InputTypeUTxO,
+  OutputTypeAddress,
+  OutputTypeChange,
   GetVersionResponse,
   DeriveAddressResponse,
   GetExtendedPublicKeyResponse,
-  SignTransactionResponse
+  SignTransactionResponse  
 } from '@cardano-foundation/ledgerjs-hw-app-cardano';
 
 export type {
   BIP32Path,
   InputTypeUTxO,
   OutputTypeAddress,
-  OutputTypeChange,  
-} from '@cardano-foundation/ledgerjs-hw-app-cardano';
+  OutputTypeChange,
+  GetVersionResponse,
+  DeriveAddressResponse,
+  SignTransactionResponse  
+};
 
 export const CONNECTION_TYPE = Object.freeze({
   WEB_AUTHN: 'webauthn',
@@ -32,23 +39,6 @@ export type DeviceCodeType = $Values<typeof DEVICE_CODE>;
 export type ExtendedPublicKeyResp = {
   ePublicKey: GetExtendedPublicKeyResponse,
   deviceVersion: GetVersionResponse,
-  deviceCode: DeviceCodeType,
-};
-export type SignTxResp = {
-  signedTx: SignTransactionResponse,
-  deviceCode: DeviceCodeType,
-};
-export type ShowAddressResp = {
-  showAddress: void,
-  deviceCode: DeviceCodeType,
-};
-export type DeriveAddressResp = {
-  derivedAddress: DeriveAddressResponse,
-  deviceCode: DeviceCodeType,
-};
-export type DeviceVersionResp = {
-  deviceVersion: GetVersionResponse,
-  deviceCode: DeviceCodeType,
 };
 
 export type MessageType = {

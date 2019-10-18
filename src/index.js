@@ -4,12 +4,7 @@ export {default} from './ledgerConnect';
 
 export type {
   ConnectionType,
-  DeviceCodeType,
   ExtendedPublicKeyResp,
-  SignTxResp,
-  ShowAddressResp,
-  DeriveAddressResp,
-  DeviceVersionResp
 } from './types';
 
 export {
