@@ -7,10 +7,7 @@ export type {
   ExtendedPublicKeyResp,
 } from './types';
 
-export {
-  CONNECTION_TYPE,
-  DEVICE_CODE,
-} from './types';
+export { CONNECTION_TYPE } from './types';
 
 export {
   makeCardanoBIP44Path,

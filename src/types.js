@@ -28,13 +28,6 @@ export const CONNECTION_TYPE = Object.freeze({
 });
 export type ConnectionType = $Values<typeof CONNECTION_TYPE>;
 
-export const DEVICE_CODE = Object.freeze({
-  NONE: 'none',
-  NANO_S: 's',
-  NANO_X: 'x',
-});
-export type DeviceCodeType = $Values<typeof DEVICE_CODE>;
-
 /* Response Types */
 export type ExtendedPublicKeyResp = {
   ePublicKey: GetExtendedPublicKeyResponse,
