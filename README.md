@@ -15,7 +15,7 @@ This library is responsible for opening, sendind resquest, passing back response
 7. Finally, `yoroi-extension-ledger-connect-handler` passes response to `Yoroi`(Using function return).
 
 # Supported Function
-- [getExtendedPublicKey](https://github.com/Emurgo/yoroi-extension-ledger-connect-handler/blob/a130d213ce4bfbb4f51e90d44345d2c32aab825b/src/ledgerConnect.js#L56) = (hdPath: BIP32Path): Promise<ExtendedPublicKeyResp>
+- [getExtendedPublicKey](https://github.com/Emurgo/yoroi-extension-ledger-connect-handler/blob/a130d213ce4bfbb4f51e90d44345d2c32aab825b/src/ledgerConnect.js#L56) = (hdPath: BIP32Path): Promise\<ExtendedPublicKeyResp\>
 
   params:
   - hdPath: [BIP32Path](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L38)<br>
@@ -37,7 +37,7 @@ This library is responsible for opening, sendind resquest, passing back response
     deviceVersion: [GetVersionResponse](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L60),
   }
 
-- [signTransaction](https://github.com/Emurgo/yoroi-extension-ledger-connect-handler/blob/a130d213ce4bfbb4f51e90d44345d2c32aab825b/src/ledgerConnect.js#L96) = (inputs: Array<InputTypeUTxO>, outputs: Array<OutputTypeAddress | OutputTypeChange>): Promise<SignTransactionResponse>
+- [signTransaction](https://github.com/Emurgo/yoroi-extension-ledger-connect-handler/blob/a130d213ce4bfbb4f51e90d44345d2c32aab825b/src/ledgerConnect.js#L96) = (inputs: Array\<InputTypeUTxO>, outputs: Array<OutputTypeAddress | OutputTypeChange\>): Promise\<SignTransactionResponse\>
 
   params:
   - inputs: Array<[InputTypeUTxO](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L40)>
@@ -46,7 +46,7 @@ This library is responsible for opening, sendind resquest, passing back response
   returns:
   - [SignTransactionResponse](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L84)
 
-- [showAddress](https://github.com/Emurgo/yoroi-extension-ledger-connect-handler/blob/3c14ffe02e0ba11740b8103d5e20b7cabbbe88db/src/ledgerConnect.js#L95) = (hdPath: BIP32Path, address: string): Promise<void>
+- [showAddress](https://github.com/Emurgo/yoroi-extension-ledger-connect-handler/blob/3c14ffe02e0ba11740b8103d5e20b7cabbbe88db/src/ledgerConnect.js#L95) = (hdPath: BIP32Path, address: string): Promise\<void\>
 
   params:
   - hdPath: [BIP32Path](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L38)
@@ -55,7 +55,7 @@ This library is responsible for opening, sendind resquest, passing back response
   returns:
   - `void`  
 
-- [deriveAddress](https://github.com/Emurgo/yoroi-extension-ledger-connect-handler/blob/a130d213ce4bfbb4f51e90d44345d2c32aab825b/src/ledgerConnect.js#L115) = (hdPath: BIP32Path): Promise<DeriveAddressResponse>
+- [deriveAddress](https://github.com/Emurgo/yoroi-extension-ledger-connect-handler/blob/a130d213ce4bfbb4f51e90d44345d2c32aab825b/src/ledgerConnect.js#L115) = (hdPath: BIP32Path): Promise\<DeriveAddressResponse\>
 
   params:
   - hdPath: [BIP32Path](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L38)
@@ -63,7 +63,7 @@ This library is responsible for opening, sendind resquest, passing back response
   returns:
   - [DeriveAddressResponse](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L67)
 
-- [getVersion](https://github.com/Emurgo/yoroi-extension-ledger-connect-handler/blob/3c14ffe02e0ba11740b8103d5e20b7cabbbe88db/src/ledgerConnect.js#L132) = (): Promise<GetVersionResponse>
+- [getVersion](https://github.com/Emurgo/yoroi-extension-ledger-connect-handler/blob/3c14ffe02e0ba11740b8103d5e20b7cabbbe88db/src/ledgerConnect.js#L132) = (): Promise\<GetVersionResponse\>
 
   params:
   - `void`
