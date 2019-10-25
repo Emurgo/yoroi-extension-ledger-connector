@@ -21,7 +21,7 @@ This library is responsible for opening, sendind resquest, passing back response
   - hdPath: [BIP32Path](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L38)<br>
   HARDENED = 0x80000000;<br>
   PURPOSE = 44;<br>
-  COIN_TYPE = 1815; // Cardano<br>
+  COIN_TYPE = 1815; // Cardano<br><br>
   BIP32Path = [<br>
     HARDENED + PURPOSE,<br>
     HARDENED + COIN_TYPE,<br>
@@ -70,6 +70,14 @@ This library is responsible for opening, sendind resquest, passing back response
 
   returns:
   - [GetVersionResponse](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L60)
+
+# Supported Ledger Transport
+- [@ledgerhq/hw-transport-webauthn](https://www.npmjs.com/package/@ledgerhq/hw-transport-webauthn)
+- [@ledgerhq/hw-transport-u2f](https://www.npmjs.com/package/@ledgerhq/hw-transport-u2f)
+  - Has issues on `Windows 10 Version: >= 1903`. [Refer](https://github.com/Emurgo/yoroi-frontend/pull/696).
+- [@ledgerhq/hw-transport-webusb](https://www.npmjs.com/package/@ledgerhq/hw-transport-webusb) [Incomplete]
+  - Firefox does not supports [WebUSB](https://caniuse.com/#feat=webusb).
+  - Needs `udev rules`(on Linux) or `drivers`(on Windows) to be pre-installed. [Refer](https://github.com/Emurgo/yoroi-frontend/pull/696) WebUSB section.
 
 # Building up
 - `nvm i`
