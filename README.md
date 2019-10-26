@@ -72,7 +72,7 @@ This library is responsible for opening, sendind resquest, passing back response
   - [GetVersionResponse](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L60)
 
 # Supported Ledger Transport
-- [@ledgerhq/hw-transport-webauthn](https://www.npmjs.com/package/@ledgerhq/hw-transport-webauthn)
+- [@ledgerhq/hw-transport-webauthn](https://www.npmjs.com/package/@ledgerhq/hw-transport-webauthn) [Default]
 - [@ledgerhq/hw-transport-u2f](https://www.npmjs.com/package/@ledgerhq/hw-transport-u2f)
   - Has issues on `Windows 10 Version: >= 1903`. [Refer](https://github.com/Emurgo/yoroi-frontend/pull/696).
 - [@ledgerhq/hw-transport-webusb](https://www.npmjs.com/package/@ledgerhq/hw-transport-webusb) [Incomplete]
