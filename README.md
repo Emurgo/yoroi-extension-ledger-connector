@@ -31,7 +31,7 @@ This library is responsible for opening, sendind resquest, passing back response
   ]
 
   returns:
-  - [ExtendedPublicKeyResp](https://github.com/Emurgo/yoroi-extension-ledger-connect-handler/blob/a130d213ce4bfbb4f51e90d44345d2c32aab825b/src/types.js#L39)<br>
+  - [Promise\<ExtendedPublicKeyResp\>](https://github.com/Emurgo/yoroi-extension-ledger-connect-handler/blob/a130d213ce4bfbb4f51e90d44345d2c32aab825b/src/types.js#L39)<br>
   type ExtendedPublicKeyResp = {
     ePublicKey: [GetExtendedPublicKeyResponse](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L71),
     deviceVersion: [GetVersionResponse](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L60),
@@ -44,7 +44,7 @@ This library is responsible for opening, sendind resquest, passing back response
   - outputs: Array<[OutputTypeAddress](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L46) | [OutputTypeChange](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L51)>
 
   returns:
-  - [SignTransactionResponse](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L84)
+  - [Promise\<SignTransactionResponse\>](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L84)
 
 - [showAddress](https://github.com/Emurgo/yoroi-extension-ledger-connect-handler/blob/3c14ffe02e0ba11740b8103d5e20b7cabbbe88db/src/ledgerConnect.js#L95) = (hdPath: BIP32Path, address: string): Promise\<void\>
 
@@ -53,7 +53,7 @@ This library is responsible for opening, sendind resquest, passing back response
   - address: string
 
   returns:
-  - `void`  
+  - Promise\<void\>
 
 - [deriveAddress](https://github.com/Emurgo/yoroi-extension-ledger-connect-handler/blob/a130d213ce4bfbb4f51e90d44345d2c32aab825b/src/ledgerConnect.js#L115) = (hdPath: BIP32Path): Promise\<DeriveAddressResponse\>
 
@@ -61,7 +61,7 @@ This library is responsible for opening, sendind resquest, passing back response
   - hdPath: [BIP32Path](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L38)
 
   returns:
-  - [DeriveAddressResponse](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L67)
+  - [Promise\<DeriveAddressResponse\>](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L67)
 
 - [getVersion](https://github.com/Emurgo/yoroi-extension-ledger-connect-handler/blob/3c14ffe02e0ba11740b8103d5e20b7cabbbe88db/src/ledgerConnect.js#L132) = (): Promise\<GetVersionResponse\>
 
@@ -69,7 +69,24 @@ This library is responsible for opening, sendind resquest, passing back response
   - `void`
 
   returns:
-  - [GetVersionResponse](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L60)
+  - [Promise\<GetVersionResponse\>](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L60)
+
+# Example
+**Import**
+```
+import LedgerConnect from 'yoroi-extension-ledger-connect-handler';
+```
+**Create new instance**
+```
+
+const ledgerConnect = new LedgerConnect(config);
+```
+`config` is type of: [Config](https://github.com/Emurgo/yoroi-extension-ledger-connect-handler/blob/c88151a718c660ef63bbbcd563de452a29861348/src/types.js#L43)
+
+**Calling function**
+```
+const deviceVersionResp = await ledgerConnect.getVersion();
+```
 
 # Supported Ledger Transport
 - [@ledgerhq/hw-transport-webauthn](https://www.npmjs.com/package/@ledgerhq/hw-transport-webauthn) [Default]
@@ -79,10 +96,11 @@ This library is responsible for opening, sendind resquest, passing back response
   - Firefox does not supports [WebUSB](https://caniuse.com/#feat=webusb).
   - Needs `udev rules`(on Linux) or `drivers`(on Windows) to be pre-installed. [Refer](https://github.com/Emurgo/yoroi-frontend/pull/696) WebUSB section.
 
-# Building up
+# <a name="building-up">Building up</a>
 - `nvm i`
 - `yarn`
 - `yarn run build`
 
 # Publishing
-[TBD]
+Make sure you have followed [Building up](#building-up) steps before publishing.
+- `npm publish`
