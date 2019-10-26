@@ -14,7 +14,7 @@ This library is responsible for opening, sendind resquest, passing back response
 6. `content-script` passes response to `yoroi-extension-ledger-connect-handler`(Using extension port).
 7. Finally, `yoroi-extension-ledger-connect-handler` passes response to `Yoroi`(Using function return).
 
-# Supported Function
+# Supported Functions
 - [getExtendedPublicKey](https://github.com/Emurgo/yoroi-extension-ledger-connect-handler/blob/a130d213ce4bfbb4f51e90d44345d2c32aab825b/src/ledgerConnect.js#L56) = (hdPath: BIP32Path): Promise\<ExtendedPublicKeyResp\>
 
   params:
