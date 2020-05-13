@@ -258,7 +258,7 @@ export default class LedgerConnect {
   };
 
   /**
-   * Handles response from WebSite, besically passes result back to Yoroi
+   * Handles response from WebSite, basically passes result back to Yoroi
    * 
    * @param {*} req : MessageType
    * @param {*} cb  : FuncResp

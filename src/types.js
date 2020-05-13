@@ -29,21 +29,22 @@ export const CONNECTION_TYPE = Object.freeze({
 export type ConnectionType = $Values<typeof CONNECTION_TYPE>;
 
 /* Response Types */
-export type ExtendedPublicKeyResp = {
+export type ExtendedPublicKeyResp = {|
   ePublicKey: GetExtendedPublicKeyResponse,
   deviceVersion: GetVersionResponse,
-};
+|};
 
-export type MessageType = {
+export type MessageType = {|
   target?: string,
   action: string,
-  params: any
-};
+  params: any,
+|};
 
 export type Config = {
   connectorUrl?: string,
   connectionType?: ConnectionType,
-  locale?: string
+  locale?: string,
+  ...
 };
 
-export type FuncResp = ({ success: boolean, payload: any}) => void;
+export type FuncResp = ({| success: boolean, payload: any |}) => void;

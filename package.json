@@ -1,6 +1,6 @@
 {
-  "name": "yoroi-extension-ledger-connect-handler",
-  "version": "2.0.4",
+  "name": "@emurgo/ledger-connect-handler",
+  "version": "2.0.5",
   "description": "Interface for communication with Cardano Ledger app",
   "author": "EMURGO.io",
   "license": "MIT",
@@ -13,20 +13,26 @@
     "build": "yarn build-js && yarn build-flow",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "husky": {
+    "hooks": {
+      "pre-push": "yarn flow && yarn eslint && yarn build"
+    }
+  },
   "dependencies": {
-    "@cardano-foundation/ledgerjs-hw-app-cardano": "1.0.7"
+    "@cardano-foundation/ledgerjs-hw-app-cardano": "1.0.8"
   },
   "devDependencies": {
-    "@babel/cli": "7.5.5",
-    "@babel/core": "7.5.5",
-    "@babel/plugin-proposal-class-properties": "7.5.5",
-    "@babel/preset-flow": "7.0.0",
-    "@babel/runtime": "7.5.5",
-    "babel-eslint": "10.0.3",
-    "eslint": "6.2.2",
-    "eslint-plugin-flowtype": "4.2.0",
-    "flow-bin": "0.106.2",
-    "flow-copy-source": "2.0.8"
+    "@babel/cli": "7.8.4",
+    "@babel/core": "7.9.6",
+    "@babel/plugin-proposal-class-properties": "7.8.3",
+    "@babel/preset-flow": "7.9.0",
+    "@babel/runtime": "7.9.6",
+    "babel-eslint": "10.1.0",
+    "eslint": "7.0.0",
+    "eslint-plugin-flowtype": "4.7.0",
+    "flow-bin": "0.124.0",
+    "flow-copy-source": "2.0.9",
+    "husky": "4.2.5"
   },
   "files": [
     "lib"

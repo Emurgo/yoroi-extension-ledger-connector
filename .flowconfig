@@ -1,12 +1,15 @@
 [ignore]
-.*/.git/.*
+<PROJECT_ROOT>/lib/.*
 
 [include]
-.*/.*
 
 [libs]
 
 [lints]
+sketchy-null=warn
+sketchy-number=warn
+unnecessary-optional-chain=warn
+ambiguous-object-type=error
 
 [options]
 
