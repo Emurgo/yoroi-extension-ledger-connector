@@ -15,61 +15,143 @@ This library is responsible for opening, sendind resquest, passing back response
 7. Finally, `yoroi-extension-ledger-connect-handler` passes response to `Yoroi`(Using function return).
 
 # Supported Functions
-- [getExtendedPublicKey](https://github.com/Emurgo/yoroi-extension-ledger-connect-handler/blob/a130d213ce4bfbb4f51e90d44345d2c32aab825b/src/ledgerConnect.js#L56) = (hdPath: BIP32Path): Promise\<ExtendedPublicKeyResp\>
 
-  params:
-  - hdPath: [BIP32Path](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L38)<br>
-  HARDENED = 0x80000000;<br>
-  PURPOSE = 44;<br>
-  COIN_TYPE = 1815; // Cardano<br><br>
-  BIP32Path = [<br>
-    HARDENED + PURPOSE,<br>
-    HARDENED + COIN_TYPE,<br>
-    HARDENED + account,<br>
-    chain,<br>
-    address<br>
-  ]
+## getExtendedPublicKey
 
-  returns:
-  - [Promise\<ExtendedPublicKeyResp\>](https://github.com/Emurgo/yoroi-extension-ledger-connect-handler/blob/a130d213ce4bfbb4f51e90d44345d2c32aab825b/src/types.js#L39)<br>
-  type ExtendedPublicKeyResp = {
-    ePublicKey: [GetExtendedPublicKeyResponse](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L71),
-    deviceVersion: [GetVersionResponse](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L60),
+Inputs
+```
+{
+  serial: ?string,
+  params: {
+    path: BIP32Path
+  },
+}
+```
+Outputs
+```
+{
+  deriveSerial: {
+    serial: string
+  },
+  deviceVersion: {
+    flags: Flags,
+    major: string,
+    minor: string,
+    patch: string
+  },
+  response: {
+    chainCodeHex: string,
+    publicKeyHex: string
   }
+}
+```
 
-- [signTransaction](https://github.com/Emurgo/yoroi-extension-ledger-connect-handler/blob/a130d213ce4bfbb4f51e90d44345d2c32aab825b/src/ledgerConnect.js#L96) = (inputs: Array\<InputTypeUTxO>, outputs: Array<OutputTypeAddress | OutputTypeChange\>): Promise\<SignTransactionResponse\>
+## signTransaction
 
-  params:
-  - inputs: Array<[InputTypeUTxO](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L40)>
-  - outputs: Array<[OutputTypeAddress](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L46) | [OutputTypeChange](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L51)>
+Inputs
+```
+{
+  serial: ?string,
+  params: {
+    networkId: number,
+    protocolMagic: number,
+    inputs: Array<InputTypeUTxO>,
+    outputs: Array<OutputTypeAddress | OutputTypeAddressParams>,
+    feeStr: string,
+    ttlStr: string,
+    certificates: Array<Certificate>,
+    withdrawals: Array<Withdrawal>,
+    metadataHashHex: ?string
+  },
+}
+```
+Outputs
+```
+{
+  txHashHex: string,
+  witnesses: Array<Witness>
+}
+```
 
-  returns:
-  - [Promise\<SignTransactionResponse\>](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L84)
+## showAddress
 
-- [showAddress](https://github.com/Emurgo/yoroi-extension-ledger-connect-handler/blob/3c14ffe02e0ba11740b8103d5e20b7cabbbe88db/src/ledgerConnect.js#L95) = (hdPath: BIP32Path, address: string): Promise\<void\>
+Inputs
+```
+{|
+  serial: ?string,
+  params: {
+    address: string,
+    addressTypeNibble: $Values<typeof AddressTypeNibbles>,
+    networkIdOrProtocolMagic: number,
+    spendingPath: BIP32Path,
+    stakingPath: ?BIP32Path,
+    stakingKeyHashHex: ?string,
+    stakingBlockchainPointer: ?StakingBlockchainPointer
+  },
+|}
+```
+Outputs
+```
+undefined
+```
 
-  params:
-  - hdPath: [BIP32Path](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L38)
-  - address: string
+## deriveAddress
 
-  returns:
-  - Promise\<void\>
+Inputs
+```
+{
+  serial: ?string,
+  params: {
+    addressTypeNibble: $Values<typeof AddressTypeNibbles>,
+    networkIdOrProtocolMagic: number,
+    spendingPath: BIP32Path,
+    stakingPath: ?BIP32Path,
+    stakingKeyHashHex: ?string,
+    stakingBlockchainPointer: ?StakingBlockchainPointer,
+  },
+}
+```
+Outputs
+```
+{
+  addressHex: string
+}
+```
 
-- [deriveAddress](https://github.com/Emurgo/yoroi-extension-ledger-connect-handler/blob/a130d213ce4bfbb4f51e90d44345d2c32aab825b/src/ledgerConnect.js#L115) = (hdPath: BIP32Path): Promise\<DeriveAddressResponse\>
+## getVersion
 
-  params:
-  - hdPath: [BIP32Path](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L38)
+Inputs
+```
+{
+  serial: ?string,
+  params: undefined,
+}
+```
+Outputs
+```
+{
+  flags: Flags,
+  major: string,
+  minor: string,
+  patch: string
+}
+```
 
-  returns:
-  - [Promise\<DeriveAddressResponse\>](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L67)
+## getSerial
 
-- [getVersion](https://github.com/Emurgo/yoroi-extension-ledger-connect-handler/blob/3c14ffe02e0ba11740b8103d5e20b7cabbbe88db/src/ledgerConnect.js#L132) = (): Promise\<GetVersionResponse\>
-
-  params:
-  - `void`
-
-  returns:
-  - [Promise\<GetVersionResponse\>](https://github.com/cardano-foundation/ledgerjs-hw-app-cardano/blob/ac3ee1345506ab343a7159ebbcec8e616f8ac5d9/src/Ada.js#L60)
+Inputs
+```
+{
+  serial: ?string,
+  params: undefined,
+}
+```
+Outputs
+```
+{
+  serial: string
+}
+```
 
 # Example
 **Import**

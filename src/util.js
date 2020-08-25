@@ -8,8 +8,6 @@ import {
   DEFAULT_LOCALE,
   DEFAULT_CONNECTION_TYPE,
   HARDENED,
-  PURPOSE,
-  COIN_TYPE
 } from './const';
 
 /**
@@ -26,7 +24,7 @@ export function makeFullURL(
   connectionType: ConnectionType,
   locale: string
 ): string {
-  const parms = {
+  const params = {
     connectionType: (connectionType === DEFAULT_CONNECTION_TYPE)? '' : `transport=${connectionType}`,
     locale: (locale === DEFAULT_LOCALE)? '' : `locale=${locale}`
   }
@@ -34,10 +32,10 @@ export function makeFullURL(
   let fullURL = connectorUrl + (connectorUrl.endsWith('/')? '' : '/');
 
   let foundFirst = false;
-  for (const prop in parms) {
-    const value = parms[prop]
+  for (const prop in params) {
+    const value = params[prop]
     // Check own property and escape empty values
-    if (Object.prototype.hasOwnProperty.call(parms, prop) && value) {
+    if (Object.prototype.hasOwnProperty.call(params, prop) && value) {
       // choose to prepend ? or &
       if(!foundFirst) {
         foundFirst = true;
@@ -61,53 +59,6 @@ export function prepareError(payload: any): string {
   return (payload && payload.error)
     ? payload.error
     : 'SOMETHING_UNEXPECTED_HAPPENED';
-}
-
-/**
- * Get the Bip44 path required to specify an address
- *
- * https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki#examples
- * Ledger (according to current security rules) denies any derivation path which does not start with
- *  `[HD+44, HD+1815, HD+(account), chain, address]`
- * 
- * @param {*} account account index eg: { 0 = first account , 1 = second account ...}
- * @param {*} chain 0 = external or 1 = change
- * @param {*} address address index eg: { 0 = first address , 1 = second address ...}
- * @returns BIP32Path
- */
-export function makeCardanoBIP44Path (
-  account: number,
-  chain: number,
-  address: number
-): BIP32Path {
-  return [
-    HARDENED + PURPOSE,
-    HARDENED + COIN_TYPE,
-    HARDENED + account,
-    chain,
-    address
-  ];
-}
-
-/**
- * Get the Bip44 path required to create an account
- *
- * See BIP44 for explanation
- * https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki#examples
- * Ledger (according to current security rules) denies any derivation path which does not start with
- *  `[HD+44, HD+1815, HD+(account)]`
- * 
- * @param {*} account
- * @returns BIP32Path
- */
-export function makeCardanoAccountBIP44Path (
-  account: number,
-): BIP32Path {
-  return [
-    HARDENED + PURPOSE,
-    HARDENED + COIN_TYPE,
-    HARDENED + account
-  ];
 }
 
 /**

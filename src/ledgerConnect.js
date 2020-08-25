@@ -9,11 +9,18 @@ import type {
   BIP32Path,
   InputTypeUTxO,
   OutputTypeAddress,
-  OutputTypeChange,
   ExtendedPublicKeyResp,
   GetVersionResponse,
+  GetSerialResponse,
   DeriveAddressResponse,
-  SignTransactionResponse,  
+  SignTransactionResponse,
+  GetVersionRequest,
+  GetSerialRequest,
+  GetExtendedPublicKeyRequest,
+  DeriveAddressRequest,
+  ShowAddressRequest,
+  SignTransactionRequest,
+  VerifyAddressInfoType,
 } from './types';
 import {
   CONNECTION_TYPE
@@ -52,13 +59,15 @@ export default class LedgerConnect {
   //   Interface with Cardano app
   // ==============================
 
-  getExtendedPublicKey = (hdPath: BIP32Path): Promise<ExtendedPublicKeyResp> => {
+  getExtendedPublicKey: {|
+    serial: ?string,
+    params: GetExtendedPublicKeyRequest,
+  |} => Promise<ExtendedPublicKeyResp> = (request) => {
     return new Promise((resolve, reject) => {
       this._sendMessage({
         action: 'ledger-get-extended-public-key',
-        params: {
-          hdPath,
-        },
+        params: request.params,
+        serial: request.serial,
       },
       ({success, payload}) => {
         if (success) {
@@ -70,17 +79,15 @@ export default class LedgerConnect {
     });
   };
 
-  signTransaction = (
-    inputs: Array<InputTypeUTxO>,
-    outputs: Array<OutputTypeAddress | OutputTypeChange>
-  ): Promise<SignTransactionResponse> => {
+  signTransaction: {|
+    serial: ?string,
+    params: SignTransactionRequest,
+  |} => Promise<SignTransactionResponse> = (request) => {
     return new Promise((resolve, reject) => {
         this._sendMessage({
           action: 'ledger-sign-transaction',
-          params: {
-            inputs,
-            outputs,
-          },
+          params: request.params,
+          serial: request.serial,
         },
         ({success, payload}) => {
           if (success) {
@@ -92,14 +99,15 @@ export default class LedgerConnect {
     });
   };
 
-  showAddress = (hdPath: BIP32Path, address: string): Promise<void> => {
+  showAddress: {|
+    serial: ?string,
+    params: VerifyAddressInfoType,
+  |} => Promise<void> = (request) => {
     return new Promise((resolve, reject) => {
       this._sendMessage({
         action: 'ledger-show-address',
-        params: {
-          hdPath,
-          address,
-        },
+        params: request.params,
+        serial: request.serial,
       },
       ({success, payload}) => {
         if (success) {
@@ -111,13 +119,15 @@ export default class LedgerConnect {
     });
   };
 
-  deriveAddress = (hdPath: BIP32Path): Promise<DeriveAddressResponse> => {
+  deriveAddress: {|
+    serial: ?string,
+    params: DeriveAddressRequest,
+  |} => Promise<DeriveAddressResponse> = (request) => {
     return new Promise((resolve, reject) => {
       this._sendMessage({
         action: 'ledger-derive-address',
-        params: {
-          hdPath,
-        },
+        params: request.params,
+        serial: request.serial,
       },
       ({success, payload}) => {
         if (success) {
@@ -129,12 +139,35 @@ export default class LedgerConnect {
     });
   };
 
-  getVersion = (): Promise<GetVersionResponse> => {
+  getVersion: {|
+    serial: ?string,
+    params: GetVersionRequest,
+  |} => Promise<GetVersionResponse> = (request) => {
     return new Promise((resolve, reject) => {
       this._sendMessage({
         action: 'ledger-get-version',
-        params: {
-        },
+        params: request.params,
+        serial: request.serial,
+      },
+      ({success, payload}) => {
+        if (success) {
+          resolve(payload);
+        } else {
+          reject(new Error(prepareError(payload)));
+        }
+      });
+    });
+  };
+
+  getSerial: {|
+    serial: ?string,
+    params: GetSerialRequest,
+  |} => Promise<GetSerialResponse> = (request) => {
+    return new Promise((resolve, reject) => {
+      this._sendMessage({
+        action: 'ledger-get-serial',
+        params: request.params,
+        serial: request.serial,
       },
       ({success, payload}) => {
         if (success) {
