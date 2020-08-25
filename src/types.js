@@ -4,22 +4,36 @@ import type {
   BIP32Path,
   InputTypeUTxO,
   OutputTypeAddress,
-  OutputTypeChange,
+  OutputTypeAddressParams,
+  StakingBlockchainPointer,
+  Certificate,
+  Withdrawal,
+  Flags,
   GetVersionResponse,
+  GetSerialResponse,
   DeriveAddressResponse,
   GetExtendedPublicKeyResponse,
-  SignTransactionResponse  
+  Witness,
+  SignTransactionResponse,
 } from '@cardano-foundation/ledgerjs-hw-app-cardano';
 
 export type {
   BIP32Path,
   InputTypeUTxO,
   OutputTypeAddress,
-  OutputTypeChange,
+  OutputTypeAddressParams,
+  StakingBlockchainPointer,
+  Certificate,
+  Withdrawal,
+  Flags,
   GetVersionResponse,
+  GetSerialResponse,
   DeriveAddressResponse,
-  SignTransactionResponse  
+  GetExtendedPublicKeyResponse,
+  Witness,
+  SignTransactionResponse,
 };
+import { AddressTypeNibbles } from '@cardano-foundation/ledgerjs-hw-app-cardano';
 
 export const CONNECTION_TYPE = Object.freeze({
   WEB_AUTHN: 'webauthn',
@@ -30,11 +44,51 @@ export type ConnectionType = $Values<typeof CONNECTION_TYPE>;
 
 /* Response Types */
 export type ExtendedPublicKeyResp = {|
-  ePublicKey: GetExtendedPublicKeyResponse,
+  response: GetExtendedPublicKeyResponse,
   deviceVersion: GetVersionResponse,
+  deriveSerial: GetSerialResponse,
 |};
 
+export type GetVersionRequest = void;
+export type GetSerialRequest = void;
+export type GetExtendedPublicKeyRequest = {|
+  path: BIP32Path
+|};
+export type DeriveAddressRequest = {|
+  addressTypeNibble: $Values<typeof AddressTypeNibbles>,
+  networkIdOrProtocolMagic: number,
+  spendingPath: BIP32Path,
+  stakingPath: ?BIP32Path,
+  stakingKeyHashHex: ?string,
+  stakingBlockchainPointer: ?StakingBlockchainPointer,
+|};
+export type ShowAddressRequest = {|
+  addressTypeNibble: $Values<typeof AddressTypeNibbles>,
+  networkIdOrProtocolMagic: number,
+  spendingPath: BIP32Path,
+  stakingPath: ?BIP32Path,
+  stakingKeyHashHex: ?string,
+  stakingBlockchainPointer: ?StakingBlockchainPointer
+|};
+export type SignTransactionRequest = {|
+  networkId: number,
+  protocolMagic: number,
+  inputs: Array<InputTypeUTxO>,
+  outputs: Array<OutputTypeAddress | OutputTypeAddressParams>,
+  feeStr: string,
+  ttlStr: string,
+  certificates: Array<Certificate>,
+  withdrawals: Array<Withdrawal>,
+  metadataHashHex: ?string
+|};
+
+export type VerifyAddressInfoType = {|
+  address: string,
+  ...ShowAddressRequest,
+|}
+
 export type MessageType = {|
+  serial?: ?string,
   target?: string,
   action: string,
   params: any,
