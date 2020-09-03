@@ -90,6 +90,7 @@ export type VerifyAddressInfoType = {|
 export type MessageType = {|
   serial?: ?string,
   target?: string,
+  extension: ?string,
   action: string,
   params: any,
 |};

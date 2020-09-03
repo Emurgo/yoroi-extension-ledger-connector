@@ -68,6 +68,7 @@ export default class LedgerConnect {
         action: 'ledger-get-extended-public-key',
         params: request.params,
         serial: request.serial,
+        extension: chrome.runtime.id,
       },
       ({success, payload}) => {
         if (success) {
@@ -88,6 +89,7 @@ export default class LedgerConnect {
           action: 'ledger-sign-transaction',
           params: request.params,
           serial: request.serial,
+          extension: chrome.runtime.id,
         },
         ({success, payload}) => {
           if (success) {
@@ -108,6 +110,7 @@ export default class LedgerConnect {
         action: 'ledger-show-address',
         params: request.params,
         serial: request.serial,
+        extension: chrome.runtime.id,
       },
       ({success, payload}) => {
         if (success) {
@@ -128,6 +131,7 @@ export default class LedgerConnect {
         action: 'ledger-derive-address',
         params: request.params,
         serial: request.serial,
+        extension: chrome.runtime.id,
       },
       ({success, payload}) => {
         if (success) {
@@ -148,6 +152,7 @@ export default class LedgerConnect {
         action: 'ledger-get-version',
         params: request.params,
         serial: request.serial,
+        extension: chrome.runtime.id,
       },
       ({success, payload}) => {
         if (success) {
@@ -168,6 +173,7 @@ export default class LedgerConnect {
         action: 'ledger-get-serial',
         params: request.params,
         serial: request.serial,
+        extension: chrome.runtime.id,
       },
       ({success, payload}) => {
         if (success) {
