@@ -56,7 +56,7 @@ Inputs
     networkId: number,
     protocolMagic: number,
     inputs: Array<InputTypeUTxO>,
-    outputs: Array<OutputTypeAddress | OutputTypeAddressParams>,
+    outputs: Array<TxOutputTypeAddress | TxOutputTypeAddressParams>,
     feeStr: string,
     ttlStr: string,
     certificates: Array<Certificate>,

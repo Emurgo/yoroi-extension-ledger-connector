@@ -8,7 +8,7 @@ import type {
   FuncResp,
   BIP32Path,
   InputTypeUTxO,
-  OutputTypeAddress,
+  TxOutputTypeAddress,
   ExtendedPublicKeyResp,
   GetVersionResponse,
   GetSerialResponse,
