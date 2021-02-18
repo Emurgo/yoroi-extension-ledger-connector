@@ -58,10 +58,11 @@ Inputs
     inputs: Array<InputTypeUTxO>,
     outputs: Array<TxOutputTypeAddress | TxOutputTypeAddressParams>,
     feeStr: string,
-    ttlStr: string,
+    ttlStr: ?string,
     certificates: Array<Certificate>,
     withdrawals: Array<Withdrawal>,
-    metadataHashHex: ?string
+    metadataHashHex: ?string,
+    validityIntervalStartStr: ?string
   },
 }
 ```
