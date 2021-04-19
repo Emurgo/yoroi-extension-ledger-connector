@@ -7,11 +7,6 @@ export type {
   ExtendedPublicKeyResp,
   GetVersionRequest,
   GetSerialRequest,
-  GetExtendedPublicKeyRequest,
-  DeriveAddressRequest,
-  ShowAddressRequest,
-  SignTransactionRequest,
-  VerifyAddressInfoType,
 } from './types';
 
 export { CONNECTION_TYPE } from './types';

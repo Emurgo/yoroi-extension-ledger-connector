@@ -7,8 +7,7 @@ import type {
   MessageType,
   FuncResp,
   BIP32Path,
-  InputTypeUTxO,
-  TxOutputTypeAddress,
+  TxInput,
   ExtendedPublicKeyResp,
   GetVersionResponse,
   GetSerialResponse,
@@ -16,11 +15,6 @@ import type {
   SignTransactionResponse,
   GetVersionRequest,
   GetSerialRequest,
-  GetExtendedPublicKeyRequest,
-  DeriveAddressRequest,
-  ShowAddressRequest,
-  SignTransactionRequest,
-  VerifyAddressInfoType,
 } from './types';
 import {
   CONNECTION_TYPE
@@ -35,6 +29,12 @@ import {
   prepareError,
   makeFullURL,
 } from './util';
+import type {
+  DeriveAddressRequest,
+  ShowAddressRequest,
+  GetExtendedPublicKeysRequest,
+  Transaction,
+} from '@cardano-foundation/ledgerjs-hw-app-cardano';
 
 export default class LedgerConnect {
   fullURL: string;
@@ -61,7 +61,7 @@ export default class LedgerConnect {
 
   getExtendedPublicKey: {|
     serial: ?string,
-    params: GetExtendedPublicKeyRequest,
+    params: GetExtendedPublicKeysRequest,
   |} => Promise<ExtendedPublicKeyResp> = (request) => {
     return new Promise((resolve, reject) => {
       this._sendMessage({
@@ -82,7 +82,7 @@ export default class LedgerConnect {
 
   signTransaction: {|
     serial: ?string,
-    params: SignTransactionRequest,
+    params: Transaction,
   |} => Promise<SignTransactionResponse> = (request) => {
     return new Promise((resolve, reject) => {
         this._sendMessage({
@@ -103,7 +103,7 @@ export default class LedgerConnect {
 
   showAddress: {|
     serial: ?string,
-    params: VerifyAddressInfoType,
+    params: ShowAddressRequest,
   |} => Promise<void> = (request) => {
     return new Promise((resolve, reject) => {
       this._sendMessage({

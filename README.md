@@ -39,10 +39,7 @@ Outputs
     minor: string,
     patch: string
   },
-  response: {
-    chainCodeHex: string,
-    publicKeyHex: string
-  }
+  response: GetExtendedPublicKeyResponse
 }
 ```
 
@@ -52,26 +49,12 @@ Inputs
 ```
 {
   serial: ?string,
-  params: {
-    networkId: number,
-    protocolMagic: number,
-    inputs: Array<InputTypeUTxO>,
-    outputs: Array<TxOutputTypeAddress | TxOutputTypeAddressParams>,
-    feeStr: string,
-    ttlStr: ?string,
-    certificates: Array<Certificate>,
-    withdrawals: Array<Withdrawal>,
-    metadataHashHex: ?string,
-    validityIntervalStartStr: ?string
-  },
+  params: Transaction,
 }
 ```
 Outputs
 ```
-{
-  txHashHex: string,
-  witnesses: Array<Witness>
-}
+SignTransactionResponse
 ```
 
 ## showAddress
@@ -80,15 +63,7 @@ Inputs
 ```
 {|
   serial: ?string,
-  params: {
-    address: string,
-    addressTypeNibble: $Values<typeof AddressTypeNibbles>,
-    networkIdOrProtocolMagic: number,
-    spendingPath: BIP32Path,
-    stakingPath: ?BIP32Path,
-    stakingKeyHashHex: ?string,
-    stakingBlockchainPointer: ?StakingBlockchainPointer
-  },
+  params: ShowAddressRequest,
 |}
 ```
 Outputs
@@ -102,21 +77,12 @@ Inputs
 ```
 {
   serial: ?string,
-  params: {
-    addressTypeNibble: $Values<typeof AddressTypeNibbles>,
-    networkIdOrProtocolMagic: number,
-    spendingPath: BIP32Path,
-    stakingPath: ?BIP32Path,
-    stakingKeyHashHex: ?string,
-    stakingBlockchainPointer: ?StakingBlockchainPointer,
-  },
+  params: DeriveAddressRequest,
 }
 ```
 Outputs
 ```
-{
-  addressHex: string
-}
+DeriveAddressResponse
 ```
 
 ## getVersion
@@ -130,12 +96,7 @@ Inputs
 ```
 Outputs
 ```
-{
-  flags: Flags,
-  major: string,
-  minor: string,
-  patch: string
-}
+GetVersionResponse
 ```
 
 ## getSerial
@@ -149,9 +110,7 @@ Inputs
 ```
 Outputs
 ```
-{
-  serial: string
-}
+GetSerialResponse
 ```
 
 # Example

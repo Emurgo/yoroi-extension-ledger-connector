@@ -2,10 +2,8 @@
 
 import type {
   BIP32Path,
-  InputTypeUTxO,
-  TxOutputTypeAddress,
-  TxOutputTypeAddressParams,
-  StakingBlockchainPointer,
+  TxInput,
+  TxOutput,
   Certificate,
   Withdrawal,
   Flags,
@@ -15,14 +13,13 @@ import type {
   GetExtendedPublicKeyResponse,
   Witness,
   SignTransactionResponse,
+  Network,
 } from '@cardano-foundation/ledgerjs-hw-app-cardano';
 
 export type {
   BIP32Path,
-  InputTypeUTxO,
-  TxOutputTypeAddress,
-  TxOutputTypeAddressParams,
-  StakingBlockchainPointer,
+  TxInput,
+  TxOutput,
   Certificate,
   Withdrawal,
   Flags,
@@ -33,7 +30,7 @@ export type {
   Witness,
   SignTransactionResponse,
 };
-import { AddressTypeNibbles } from '@cardano-foundation/ledgerjs-hw-app-cardano';
+import { AddressType } from '@cardano-foundation/ledgerjs-hw-app-cardano';
 
 export const CONNECTION_TYPE = Object.freeze({
   WEB_AUTHN: 'webauthn',
@@ -51,42 +48,6 @@ export type ExtendedPublicKeyResp = {|
 
 export type GetVersionRequest = void;
 export type GetSerialRequest = void;
-export type GetExtendedPublicKeyRequest = {|
-  path: BIP32Path
-|};
-export type DeriveAddressRequest = {|
-  addressTypeNibble: $Values<typeof AddressTypeNibbles>,
-  networkIdOrProtocolMagic: number,
-  spendingPath: BIP32Path,
-  stakingPath: ?BIP32Path,
-  stakingKeyHashHex: ?string,
-  stakingBlockchainPointer: ?StakingBlockchainPointer,
-|};
-export type ShowAddressRequest = {|
-  addressTypeNibble: $Values<typeof AddressTypeNibbles>,
-  networkIdOrProtocolMagic: number,
-  spendingPath: BIP32Path,
-  stakingPath: ?BIP32Path,
-  stakingKeyHashHex: ?string,
-  stakingBlockchainPointer: ?StakingBlockchainPointer
-|};
-export type SignTransactionRequest = {|
-  networkId: number,
-  protocolMagic: number,
-  inputs: Array<InputTypeUTxO>,
-  outputs: Array<TxOutputTypeAddress | TxOutputTypeAddressParams>,
-  feeStr: string,
-  ttlStr: ?string,
-  certificates: Array<Certificate>,
-  withdrawals: Array<Withdrawal>,
-  metadataHashHex: ?string,
-  validityIntervalStartStr: ?string
-|};
-
-export type VerifyAddressInfoType = {|
-  address: string,
-  ...ShowAddressRequest,
-|}
 
 export type MessageType = {|
   serial?: ?string,
