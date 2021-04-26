@@ -15,6 +15,7 @@ import type {
   SignTransactionResponse,
   GetVersionRequest,
   GetSerialRequest,
+  ShowAddressRequestWrapper,
 } from './types';
 import {
   CONNECTION_TYPE
@@ -31,7 +32,6 @@ import {
 } from './util';
 import type {
   DeriveAddressRequest,
-  ShowAddressRequest,
   GetExtendedPublicKeysRequest,
   Transaction,
 } from '@cardano-foundation/ledgerjs-hw-app-cardano';
@@ -103,7 +103,7 @@ export default class LedgerConnect {
 
   showAddress: {|
     serial: ?string,
-    params: ShowAddressRequest,
+    params: ShowAddressRequestWrapper,
   |} => Promise<void> = (request) => {
     return new Promise((resolve, reject) => {
       this._sendMessage({

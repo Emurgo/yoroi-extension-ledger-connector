@@ -14,6 +14,7 @@ import type {
   Witness,
   SignTransactionResponse,
   Network,
+  ShowAddressRequest,
 } from '@cardano-foundation/ledgerjs-hw-app-cardano';
 
 export type {
@@ -48,6 +49,10 @@ export type ExtendedPublicKeyResp = {|
 
 export type GetVersionRequest = void;
 export type GetSerialRequest = void;
+export type ShowAddressRequestWrapper = {|
+  ...ShowAddressRequest,
+  address: string,
+|};
 
 export type MessageType = {|
   serial?: ?string,

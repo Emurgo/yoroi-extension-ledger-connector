@@ -63,7 +63,10 @@ Inputs
 ```
 {|
   serial: ?string,
-  params: ShowAddressRequest,
+  params: {
+    ...ShowAddressRequest,
+    address: string,
+  },
 |}
 ```
 Outputs
