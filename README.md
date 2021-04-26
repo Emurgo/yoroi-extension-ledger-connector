@@ -65,7 +65,7 @@ Inputs
   serial: ?string,
   params: {
     ...ShowAddressRequest,
-    address: string,
+    expectedAddr: string,
   },
 |}
 ```

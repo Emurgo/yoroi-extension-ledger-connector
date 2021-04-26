@@ -51,7 +51,7 @@ export type GetVersionRequest = void;
 export type GetSerialRequest = void;
 export type ShowAddressRequestWrapper = {|
   ...ShowAddressRequest,
-  address: string,
+  expectedAddr: string,
 |};
 
 export type MessageType = {|
