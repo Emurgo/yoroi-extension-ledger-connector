@@ -39,7 +39,34 @@ Outputs
     minor: string,
     patch: string
   },
-  response: GetExtendedPublicKeyResponse
+  response: GetExtendedPublicKeysResponse<GetExtendedPublicKeyResponse>
+}
+```
+
+## getExtendedPublicKeys
+
+Inputs
+```
+{
+  serial: ?string,
+  params: {
+    path: BIP32Path
+  },
+}
+```
+Outputs
+```
+{
+  deriveSerial: {
+    serial: string
+  },
+  deviceVersion: {
+    flags: Flags,
+    major: string,
+    minor: string,
+    patch: string
+  },
+  response: GetExtendedPublicKeysResponse<GetExtendedPublicKeysResponse>
 }
 ```
 

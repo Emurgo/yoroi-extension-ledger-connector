@@ -32,7 +32,10 @@ import {
 } from './util';
 import type {
   DeriveAddressRequest,
+  GetExtendedPublicKeyRequest,
   GetExtendedPublicKeysRequest,
+  GetExtendedPublicKeyResponse,
+  GetExtendedPublicKeysResponse,
   Transaction,
 } from '@cardano-foundation/ledgerjs-hw-app-cardano';
 
@@ -61,11 +64,31 @@ export default class LedgerConnect {
 
   getExtendedPublicKey: {|
     serial: ?string,
-    params: GetExtendedPublicKeysRequest,
-  |} => Promise<ExtendedPublicKeyResp> = (request) => {
+    params: GetExtendedPublicKeyRequest,
+  |} => Promise<ExtendedPublicKeyResp<GetExtendedPublicKeyResponse>> = (request) => {
     return new Promise((resolve, reject) => {
       this._sendMessage({
         action: 'ledger-get-extended-public-key',
+        params: request.params,
+        serial: request.serial,
+        extension: chrome.runtime.id,
+      },
+      ({success, payload}) => {
+        if (success) {
+          resolve(payload);
+        } else {
+          reject(new Error(prepareError(payload)))
+        }
+      })
+    });
+  };
+  getExtendedPublicKey: {|
+    serial: ?string,
+    params: GetExtendedPublicKeysRequest,
+  |} => Promise<ExtendedPublicKeyResp<GetExtendedPublicKeysResponse>> = (request) => {
+    return new Promise((resolve, reject) => {
+      this._sendMessage({
+        action: 'ledger-get-extended-public-keys',
         params: request.params,
         serial: request.serial,
         extension: chrome.runtime.id,

@@ -41,7 +41,7 @@ export const CONNECTION_TYPE = Object.freeze({
 export type ConnectionType = $Values<typeof CONNECTION_TYPE>;
 
 /* Response Types */
-export type ExtendedPublicKeyResp = {|
+export type ExtendedPublicKeyResp<Response> = {|
   response: GetExtendedPublicKeyResponse,
   deviceVersion: GetVersionResponse,
   deriveSerial: GetSerialResponse,
