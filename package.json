@@ -1,6 +1,6 @@
 {
   "name": "@emurgo/ledger-connect-handler",
-  "version": "4.2.0",
+  "version": "4.3.0",
   "description": "Interface for communication with Cardano Ledger app",
   "author": "EMURGO.io",
   "license": "MIT",
