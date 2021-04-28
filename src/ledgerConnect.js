@@ -36,7 +36,7 @@ import type {
   GetExtendedPublicKeysRequest,
   GetExtendedPublicKeyResponse,
   GetExtendedPublicKeysResponse,
-  Transaction,
+  SignTransactionRequest,
 } from '@cardano-foundation/ledgerjs-hw-app-cardano';
 
 export default class LedgerConnect {
@@ -105,7 +105,7 @@ export default class LedgerConnect {
 
   signTransaction: {|
     serial: ?string,
-    params: Transaction,
+    params: SignTransactionRequest,
   |} => Promise<SignTransactionResponse> = (request) => {
     return new Promise((resolve, reject) => {
         this._sendMessage({
