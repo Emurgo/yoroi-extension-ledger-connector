@@ -82,7 +82,7 @@ export default class LedgerConnect {
       })
     });
   };
-  getExtendedPublicKey: {|
+  getExtendedPublicKeys: {|
     serial: ?string,
     params: GetExtendedPublicKeysRequest,
   |} => Promise<ExtendedPublicKeyResp<GetExtendedPublicKeysResponse>> = (request) => {

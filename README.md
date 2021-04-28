@@ -50,7 +50,7 @@ Inputs
 {
   serial: ?string,
   params: {
-    path: BIP32Path
+    paths: Array<BIP32Path>
   },
 }
 ```
