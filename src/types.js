@@ -42,7 +42,7 @@ export type ConnectionType = $Values<typeof CONNECTION_TYPE>;
 
 /* Response Types */
 export type ExtendedPublicKeyResp<Response> = {|
-  response: GetExtendedPublicKeyResponse,
+  response: Response,
   deviceVersion: GetVersionResponse,
   deriveSerial: GetSerialResponse,
 |};
