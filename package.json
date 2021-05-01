@@ -32,7 +32,7 @@
     "eslint-plugin-flowtype": "5.2.0",
     "flow-bin": "0.133.0",
     "flow-copy-source": "2.0.9",
-    "husky": "4.3.7"
+    "husky": "6.0.0"
   },
   "files": [
     "lib"
