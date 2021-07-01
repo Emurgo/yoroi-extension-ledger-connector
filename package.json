@@ -19,7 +19,7 @@
     }
   },
   "dependencies": {
-    "@cardano-foundation/ledgerjs-hw-app-cardano": "3.1.0"
+    "@cardano-foundation/ledgerjs-hw-app-cardano": "3.2.1"
   },
   "devDependencies": {
     "@babel/cli": "7.12.10",
