@@ -1,6 +1,6 @@
 {
   "name": "@emurgo/ledger-connect-handler",
-  "version": "6.0.0",
+  "version": "7.0.0",
   "description": "Interface for communication with Cardano Ledger app",
   "author": "EMURGO.io",
   "license": "MIT",
@@ -19,7 +19,7 @@
     }
   },
   "dependencies": {
-    "@cardano-foundation/ledgerjs-hw-app-cardano": "4.0.0"
+    "@cardano-foundation/ledgerjs-hw-app-cardano": "5.0.0"
   },
   "devDependencies": {
     "@babel/cli": "7.12.10",
