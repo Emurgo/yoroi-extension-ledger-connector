@@ -1,0 +1,40 @@
+version: 2
+updates:
+- package-ecosystem: npm
+  directory: "/"
+  schedule:
+    interval: monthly
+    timezone: PST8PDT
+  open-pull-requests-limit: 99
+  ignore:
+  - dependency-name: husky
+    versions:
+    - 4.3.6
+    - 4.3.8
+  - dependency-name: eslint
+    versions:
+    - 7.16.0
+    - 7.19.0
+  - dependency-name: flow-bin
+    versions:
+    - 0.141.0
+    - 0.143.1
+  - dependency-name: "@cardano-foundation/ledgerjs-hw-app-cardano"
+    versions:
+    - 2.1.0
+  - dependency-name: "@babel/core"
+    versions:
+    - 7.12.10
+  - dependency-name: "@babel/cli"
+    versions:
+    - 7.12.10
+  - dependency-name: "@babel/runtime"
+    versions:
+    - 7.12.5
+  - dependency-name: "@babel/preset-flow"
+    versions:
+    - 7.12.1
+  - dependency-name: "@babel/plugin-proposal-class-properties"
+    versions:
+    - 7.12.1
+  rebase-strategy: disabled
